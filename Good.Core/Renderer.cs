@@ -86,7 +86,7 @@ namespace Good.Core
             batch.Dispose();
         }
 
-        public void Draw(Texture2D texture, Rectangle source, Vector2 position, Color color, SpriteEffects flipFlags, Effect effect = null)
+        public void Draw(Texture2D texture, Rectangle source, Vector2 position, Color color, SpriteEffects flipFlags = SpriteEffects.None, Effect effect = null)
         {
             HandleEffectChange(effect);
             batch.Draw(texture, position, source, color, 0, Vector2.Zero, Vector2.One, flipFlags, 0);

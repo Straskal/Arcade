@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Good.Core
 {
@@ -22,6 +24,7 @@ namespace Good.Core
 
         internal List<Sprite> Sprites { get; set; }
         public Vector2 Position { get; set; }
+        public Tilemap Map { get; set; }
 
         public override void Enter()
         {
@@ -57,6 +60,26 @@ namespace Good.Core
 
         public override void Draw()
         {
+            int mapWidth = Map.Data.GetLength(1);
+            int mapHeight = Map.Data.GetLength(0);
+            int tilesetColumns = Map.Tileset.Texture.Width / 16;
+
+            for (int i = 0; i < mapHeight; i++) 
+            {
+                for (int j = 0; j < mapWidth; j++) 
+                {
+                    int index = Map.Data[i, j];
+                    if (index != -1) 
+                    {
+                        int row = (int)Math.Floor((double)index / tilesetColumns);
+                        int column = index % tilesetColumns;
+                        Rectangle source = new Rectangle(row * 16, column * 16, 16, 16);
+                        Vector2 position = new Vector2(j * 16, i * 16);
+                        Renderer.Instance.Draw(Map.Tileset.Texture, source, position, Color.White);
+                    }
+                }
+            }
+
             Sprites.Sort(new SpritePriorityComparer());
 
             foreach (var sprite in Sprites) 
