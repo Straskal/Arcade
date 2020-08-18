@@ -67,7 +67,7 @@ namespace Good.Core
                 for (int j = 0; j < mapWidth; j++) 
                 {
                     int index = Map.Data[i, j];
-                    if (index != -1) 
+                    if (index != -1)
                     {
                         int row = (int)Math.Floor((double)index / tilesetColumns);
                         int column = index % tilesetColumns;

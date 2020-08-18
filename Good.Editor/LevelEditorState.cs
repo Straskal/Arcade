@@ -1,5 +1,6 @@
 ﻿using Good.Core;
 using Microsoft.Xna.Framework;
+using System;
 
 namespace Good.Editor
 {
@@ -22,9 +23,28 @@ namespace Good.Editor
 
         public override void Draw()
         {
-            var drawPosition = new Vector2(200, 10);
+            var panel = new Rectangle((Renderer.ResolutionWidth - 16 * 4) - 1, 0, (16 * 4) + 1, Renderer.ResolutionHeight);
+            Renderer.Instance.DrawRectangle(panel, Color.DarkGray);
 
-            Renderer.Instance.Draw(Level.Map.Tileset.Texture, drawPosition, Color.White);
+            int numRows = Level.Map.Tileset.Texture.Height / 16;
+            int numColumns = Level.Map.Tileset.Texture.Width / 16;
+            int numCells = numRows * numColumns;
+            int x = Renderer.ResolutionWidth - 16 * 4;
+            int y = 10;
+
+            for (int i = 0; i < numCells; i++) 
+            {
+                Rectangle source = Level.Map.Tileset.GetIndexSource(i);
+                Renderer.Instance.Draw(Level.Map.Tileset.Texture, source, new Vector2(x, y), Color.White);
+
+                x += 16;
+
+                if ((i + 1) % 4 == 0) 
+                {
+                    x = Renderer.ResolutionWidth - 16 * 4;
+                    y += 16;
+                }
+            }
         }
     }
 }
