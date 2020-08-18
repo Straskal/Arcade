@@ -1,4 +1,5 @@
 ﻿using Good.Core;
+using Good.Editor;
 using Good.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -55,6 +56,7 @@ namespace GoodArcade
             });
 
             game.Push(level);
+            game.Push(new LevelEditorState());
             game.Run();
         }
     }

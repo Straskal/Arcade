@@ -1,4 +1,5 @@
 ﻿using Good.Core;
+using Microsoft.Xna.Framework;
 
 namespace Good.Editor
 {
@@ -21,7 +22,9 @@ namespace Good.Editor
 
         public override void Draw()
         {
+            var drawPosition = new Vector2(200, 10);
 
+            Renderer.Instance.Draw(Level.Map.Tileset.Texture, drawPosition, Color.White);
         }
     }
 }

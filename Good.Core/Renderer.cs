@@ -10,7 +10,7 @@ namespace Good.Core
 
         public const int ResolutionWidth = 320;
         public const int ResolutionHeight = 224;
-        public const float AspectRatio = (float)ResolutionWidth / ResolutionHeight;
+        public const float AspectRatio = ResolutionWidth / (float)ResolutionHeight;
 
         private readonly GraphicsDevice graphics;
         private readonly SpriteBatch batch;
@@ -31,21 +31,22 @@ namespace Good.Core
         {
             currentEffect = null;
 
+            int screenWidth = graphics.PresentationParameters.BackBufferWidth;
+            int screenHeight = graphics.PresentationParameters.BackBufferHeight;
+
             // Set the view port to be as wide as the backbuffer and then clear the screen.
             graphics.Viewport = new Viewport
             {
                 X = 0,
                 Y = 0,
-                Width = graphics.PresentationParameters.BackBufferWidth,
-                Height = graphics.PresentationParameters.BackBufferHeight
+                Width = screenWidth,
+                Height = screenHeight
             };
 
             graphics.Clear(Color.Black);
 
             // Time to create those black aspect ratio bars.
             // Start off the process of assuming letter box is needed.
-            int screenWidth = graphics.PresentationParameters.BackBufferWidth;
-            int screenHeight = graphics.PresentationParameters.BackBufferHeight;
             int targetWidth = screenWidth;
             int targetHeight = (int)(screenWidth / AspectRatio + 0.5f);
 
@@ -65,12 +66,13 @@ namespace Good.Core
             };
 
             // Create the resolution scale transformation.
-            transformation = Matrix.CreateScale(new Vector3
-            {
-                X = (float)graphics.PresentationParameters.BackBufferWidth / ResolutionWidth,
-                Y = (float)graphics.PresentationParameters.BackBufferWidth / ResolutionWidth,
-                Z = 1f
-            });
+            transformation = 
+                Matrix.CreateScale(new Vector3
+                {
+                    X = (float)targetWidth / ResolutionWidth,
+                    Y = (float)targetWidth / ResolutionWidth,
+                    Z = 1f
+                });
 
             batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
                        RasterizerState.CullCounterClockwise, currentEffect, transformation);
@@ -84,6 +86,12 @@ namespace Good.Core
         internal void Unload()
         {
             batch.Dispose();
+        }
+
+        public void Draw(Texture2D texture, Vector2 position, Color color)
+        {
+            HandleEffectChange(null);
+            batch.Draw(texture, position, color);
         }
 
         public void Draw(Texture2D texture, Rectangle source, Vector2 position, Color color, SpriteEffects flipFlags = SpriteEffects.None, Effect effect = null)
