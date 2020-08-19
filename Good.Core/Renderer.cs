@@ -106,6 +106,23 @@ namespace Good.Core
             batch.Draw(texture, rectangle, null, color);
         }
 
+        public void DrawRectangleLines(Rectangle rectangle, Color color)
+        {
+            HandleEffectChange(null);
+            Rectangle temp = Rectangle.Empty;
+            DrawLine(ref temp, rectangle.X, rectangle.Y, rectangle.Width, 1, color);
+            DrawLine(ref temp, rectangle.X, rectangle.Y + rectangle.Height - 1, rectangle.Width, 1, color);
+            DrawLine(ref temp, rectangle.X, rectangle.Y, 1, rectangle.Height, color);
+            DrawLine(ref temp, rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
+        }
+
+        private void DrawLine(ref Rectangle rect, int x0, int y0, int x1, int y1, Color color) 
+        {
+            rect.X = x0; rect.Width = x1;
+            rect.Y = y0; rect.Height = y1;
+            batch.Draw(texture, rect, null, color);
+        }
+
         private void HandleEffectChange(Effect effect)
         {
             if (currentEffect != effect)

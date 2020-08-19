@@ -24,7 +24,7 @@ namespace Good.Editor
         public override void Draw()
         {
             var panel = new Rectangle((Renderer.ResolutionWidth - 16 * 4) - 1, 0, (16 * 4) + 1, Renderer.ResolutionHeight);
-            Renderer.Instance.DrawRectangle(panel, Color.DarkGray);
+            Renderer.Instance.DrawRectangleLines(new Rectangle(10, 10, 16, 24), Color.Red);
 
             int numRows = Level.Map.Tileset.Texture.Height / 16;
             int numColumns = Level.Map.Tileset.Texture.Width / 16;

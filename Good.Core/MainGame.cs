@@ -97,7 +97,7 @@ namespace Good.Core
             Renderer.BeginDraw();
 
             // Draw the stack bottom to top.
-            for (int i = 0; i < Stack.Count; i++) 
+            for (int i = 0; i < Stack.Count; i++)
             {
                 if (i < Stack.Count - 1 && !Stack.ElementAt(i + 1).DrawBelow)
                     continue;
