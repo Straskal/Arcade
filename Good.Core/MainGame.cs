@@ -39,6 +39,11 @@ namespace Good.Core
             Renderer = new Renderer(GraphicsDevice);
         }
 
+        protected override void UnloadContent()
+        {
+            Content.Unload();
+        }
+
         public void Push(GameState state) 
         {
             state.Enter();

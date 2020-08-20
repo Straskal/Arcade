@@ -71,7 +71,7 @@ namespace Good.Core
                     {
                         int row = (int)Math.Floor((double)index / tilesetColumns);
                         int column = index % tilesetColumns;
-                        Rectangle source = new Rectangle(row * 16, column * 16, 16, 16);
+                        Rectangle source = Map.Tileset.GetIndexSource(index);
                         Vector2 position = new Vector2(j * 16, i * 16);
                         Renderer.Instance.Draw(Map.Tileset.Texture, source, position, Color.White);
                     }

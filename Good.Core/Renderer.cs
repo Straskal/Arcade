@@ -88,6 +88,12 @@ namespace Good.Core
             batch.Dispose();
         }
 
+        public void Print(SpriteFont font, Vector2 position, string text) 
+        {
+            HandleEffectChange(null);
+            batch.DrawString(font, text, position, Color.White);
+        }
+
         public void Draw(Texture2D texture, Vector2 position, Color color)
         {
             HandleEffectChange(null);
@@ -114,6 +120,13 @@ namespace Good.Core
             DrawLine(ref temp, rectangle.X, rectangle.Y + rectangle.Height - 1, rectangle.Width, 1, color);
             DrawLine(ref temp, rectangle.X, rectangle.Y, 1, rectangle.Height, color);
             DrawLine(ref temp, rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
+        }
+
+        public Vector2 ScaleScreenCoordinates(Vector2 screenPosition)
+        {
+            screenPosition.X -= graphics.Viewport.X;
+            screenPosition.Y -= graphics.Viewport.Y;
+            return Vector2.Transform(screenPosition, Matrix.Invert(transformation));
         }
 
         private void DrawLine(ref Rectangle rect, int x0, int y0, int x1, int y1, Color color) 
