@@ -56,7 +56,7 @@ namespace GoodArcade
             });
 
             game.Push(level);
-            game.Push(new LevelEditorState());
+            game.Push(new TilemapEditorState());
             game.Run();
         }
     }

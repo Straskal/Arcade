@@ -106,6 +106,19 @@ namespace Good.Core
             batch.Draw(texture, position, source, color, 0, Vector2.Zero, Vector2.One, flipFlags, 0);
         }
 
+        public void DrawRectangle(int x, int y, int w, int h, Color color)
+        {
+            HandleEffectChange(null);
+            var rect = new Rectangle
+            {
+                X = x,
+                Y = y,
+                Width = w,
+                Height = h
+            };
+            batch.Draw(texture, rect, null, color);
+        }
+
         public void DrawRectangle(Rectangle rectangle, Color color)
         {
             HandleEffectChange(null);
@@ -115,11 +128,10 @@ namespace Good.Core
         public void DrawRectangleLines(Rectangle rectangle, Color color)
         {
             HandleEffectChange(null);
-            Rectangle temp = Rectangle.Empty;
-            DrawLine(ref temp, rectangle.X, rectangle.Y, rectangle.Width, 1, color);
-            DrawLine(ref temp, rectangle.X, rectangle.Y + rectangle.Height - 1, rectangle.Width, 1, color);
-            DrawLine(ref temp, rectangle.X, rectangle.Y, 1, rectangle.Height, color);
-            DrawLine(ref temp, rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
+            DrawLine(rectangle.X, rectangle.Y, rectangle.Width, 1, color);
+            DrawLine(rectangle.X, rectangle.Y + rectangle.Height - 1, rectangle.Width, 1, color);
+            DrawLine(rectangle.X, rectangle.Y, 1, rectangle.Height, color);
+            DrawLine(rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
         }
 
         public Vector2 ScaleScreenCoordinates(Vector2 screenPosition)
@@ -129,10 +141,15 @@ namespace Good.Core
             return Vector2.Transform(screenPosition, Matrix.Invert(transformation));
         }
 
-        private void DrawLine(ref Rectangle rect, int x0, int y0, int x1, int y1, Color color) 
+        public void DrawLine(int x0, int y0, int x1, int y1, Color color) 
         {
-            rect.X = x0; rect.Width = x1;
-            rect.Y = y0; rect.Height = y1;
+            var rect = new Rectangle
+            {
+                X = x0,
+                Width = x1,
+                Y = y0,
+                Height = y1
+            };
             batch.Draw(texture, rect, null, color);
         }
 
