@@ -50,6 +50,8 @@ namespace Good.Editor
                 var x = PanelX + 1;
                 var y = 1;
 
+                var selectedColor = new Color(255, 0, 0, 20);
+
                 for (var i = 0; i < numCells; i++)
                 {
                     var position = new Vector2(x, y);
@@ -58,7 +60,7 @@ namespace Good.Editor
                     x += TileSize + 1;
 
                     if (i == selectedTile)
-                        Renderer.Instance.DrawRectangleLines(new Rectangle((int)position.X, (int)position.Y, TileSize, TileSize), Color.White);
+                        Renderer.Instance.DrawRectangle(new Rectangle((int)position.X, (int)position.Y, TileSize, TileSize), selectedColor);
 
                     if ((i + 1) % 4 == 0)
                     {
