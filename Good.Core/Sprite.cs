@@ -4,14 +4,6 @@ using System.Collections.Generic;
 
 namespace Good.Core
 {
-    public struct SpritePriorityComparer : IComparer<Sprite>
-    {
-        public int Compare(Sprite x, Sprite y)
-        {
-            return x.Priority > y.Priority ? 1 : 0;
-        }
-    }
-
     public class Sprite
     {
         public Vector2 Position { get; set; }
