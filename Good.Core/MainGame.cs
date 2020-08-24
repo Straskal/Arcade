@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,12 +11,14 @@ namespace Good.Core
         public static MainGame Instance { get; private set; }
         public static GameTime Time { get; private set; }
 
-        public List<GameState> Stack { get; }
-        public GraphicsDeviceManager GraphicsManager { get; }
-        public Renderer Renderer { get; }
+        private readonly List<MainGameState> stack;
+        private readonly Queue<Action> stackOps;
 
         public MainGame()
         {
+            stack = new List<MainGameState>();
+            stackOps = new Queue<Action>();
+
             Instance = this;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -34,32 +37,34 @@ namespace Good.Core
             };
 
             GraphicsManager.ApplyChanges();
-
-            Stack = new List<GameState>();
             Renderer = new Renderer(GraphicsDevice);
         }
+
+        public GraphicsDeviceManager GraphicsManager { get; }
+        public Renderer Renderer { get; }
 
         protected override void UnloadContent()
         {
             Content.Unload();
         }
 
-        public void Push(GameState state) 
+        public void Push(MainGameState state) 
         {
-            state.Enter();
-            Stack.Add(state);
+            stackOps.Enqueue(() => 
+            {
+                stack.Add(state);
+                state.Enter();
+            });
         }
 
         public void Pop() 
         {
-            var state = Stack.Last();
-            Stack.Remove(state);
-            state.Exit();
-        }
-
-        public T GetState<T>() where T : GameState 
-        {
-            return Stack.FirstOrDefault(state => state.GetType() == typeof(T)) as T;
+            stackOps.Enqueue(() =>
+            {
+                var state = stack.Last();
+                state.Exit();
+                stack.Remove(state);
+            });
         }
 
         public void ToggleFullscreen()
@@ -84,33 +89,33 @@ namespace Good.Core
         {
             Time = gameTime;
 
-            // Update stack from top to bottom.
-            for (int i = Stack.Count - 1; i >= 0; i--) 
+            for (int i = stack.Count - 1; i >= 0; i--) 
             {
-                var state = Stack.ElementAt(i);
+                var state = stack.ElementAt(i);
                 state.Update();
-
-                if (!state.UpdateBelow)
-                    break;
+                if (!state.IsTranscendent) break;
             }
+
+            while (stackOps.Count > 0) 
+                stackOps.Dequeue().Invoke();
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            Renderer.BeginDraw();
+            Renderer.FrameStart();
 
-            // Draw the stack bottom to top.
-            for (int i = 0; i < Stack.Count; i++)
+            for (int i = 0; i < stack.Count; i++)
             {
-                if (i < Stack.Count - 1 && !Stack.ElementAt(i + 1).DrawBelow)
-                    continue;
-
-                Stack.ElementAt(i).Draw();
+                if (i == stack.Count - 1 || stack.ElementAt(i + 1).IsTransparent) 
+                {
+                    var state = stack.ElementAt(i);
+                    Renderer.BeginDraw(state.Transformation);
+                    state.Draw();
+                    Renderer.EndDraw();
+                }
             }
-
-            Renderer.EndDraw();
 
             base.Draw(gameTime);
         }

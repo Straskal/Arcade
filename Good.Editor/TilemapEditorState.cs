@@ -5,10 +5,10 @@ using System;
 
 namespace Good.Editor
 {
-    public class TilemapEditorState : GameState
+    public class TilemapEditorState : MainGameState
     {
-        public override bool UpdateBelow => false;
-        public override bool DrawBelow => true;
+        public override bool IsTranscendent => false;
+        public override bool IsTransparent => true;
 
         const int TileSize = 16;
         const int TilesPerRow = 4;
@@ -20,12 +20,46 @@ namespace Good.Editor
         private int selectedTile = 0;
         private int previousScroll = 0;
 
+        private bool down = false;
+
+        public override void Update()
+        {
+            Layout.Current.PumpSpriteOperations();
+        }
+
         public override void Draw()
         {
             var mouse = Mouse.GetState();
             var mousePosition = Renderer.Instance.ScaleScreenCoordinates(new Vector2(mouse.X, mouse.Y));
-            var level = LevelState.Current;
+            var level = Layout.Current;
             var map = level.Map;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.S) && !down)
+            {
+                down = true;
+                LevelSaver.SaveLevel();
+            }
+            else down = false;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                Layout.Current.Position += new Vector2(1, 0);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                Layout.Current.Position += new Vector2(-1, 0);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+            {
+                Layout.Current.Zoom += 0.1f;
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            {
+                Layout.Current.Zoom -= 0.1f;
+            }
 
             // Grid
             {
@@ -36,7 +70,7 @@ namespace Good.Editor
                     Renderer.Instance.DrawRectangle(0, i * TileSize, mapWidth * TileSize, 1, new Color(50, 50, 50, 50));
 
                 for (int i = 0; i < mapWidth; i++)
-                    Renderer.Instance.DrawLine(i * TileSize, 0, 1, mapHeight * TileSize, new Color(50, 50, 50, 50));
+                    Renderer.Instance.DrawRectangle(i * TileSize, 0, 1, mapHeight * TileSize, new Color(50, 50, 50, 50));
             }
 
             // Panel

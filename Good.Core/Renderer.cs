@@ -15,8 +15,9 @@ namespace Good.Core
         private readonly GraphicsDevice graphics;
         private readonly SpriteBatch batch;
         private readonly Texture2D texture;
+
         private Effect currentEffect;
-        private Matrix transformation;
+        private Matrix resolutionTransform;
 
         internal Renderer(GraphicsDevice graphicsDevice)
         {
@@ -27,13 +28,12 @@ namespace Good.Core
             texture.SetData(new[] { Color.White });
         }
 
-        internal void BeginDraw()
+        internal void FrameStart() 
         {
-            currentEffect = null;
-
             int screenWidth = graphics.PresentationParameters.BackBufferWidth;
             int screenHeight = graphics.PresentationParameters.BackBufferHeight;
 
+            // Time to create those black aspect ratio bars.
             // Set the view port to be as wide as the backbuffer and then clear the screen.
             graphics.Viewport = new Viewport
             {
@@ -45,7 +45,6 @@ namespace Good.Core
 
             graphics.Clear(Color.Black);
 
-            // Time to create those black aspect ratio bars.
             // Start off the process of assuming letter box is needed.
             int targetWidth = screenWidth;
             int targetHeight = (int)(screenWidth / AspectRatio + 0.5f);
@@ -65,15 +64,18 @@ namespace Good.Core
                 Height = targetHeight
             };
 
-            // Create the resolution scale transformation.
-            transformation = 
-                Matrix.CreateScale(new Vector3
-                {
-                    X = (float)targetWidth / ResolutionWidth,
-                    Y = (float)targetWidth / ResolutionWidth,
-                    Z = 1f
-                });
+            resolutionTransform = Matrix.CreateScale(new Vector3
+            {
+                X = (float)targetWidth / ResolutionWidth,
+                Y = (float)targetWidth / ResolutionWidth,
+                Z = 1f
+            });
+        }
 
+        internal void BeginDraw(Matrix? transform = null)
+        {
+            currentEffect = null;
+            var transformation = transform.HasValue ? transform.Value * resolutionTransform : resolutionTransform;
             batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
                        RasterizerState.CullCounterClockwise, currentEffect, transformation);
         }
@@ -128,29 +130,17 @@ namespace Good.Core
         public void DrawRectangleLines(Rectangle rectangle, Color color)
         {
             HandleEffectChange(null);
-            DrawLine(rectangle.X, rectangle.Y, rectangle.Width, 1, color);
-            DrawLine(rectangle.X, rectangle.Y + rectangle.Height - 1, rectangle.Width, 1, color);
-            DrawLine(rectangle.X, rectangle.Y, 1, rectangle.Height, color);
-            DrawLine(rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
+            DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, 1, color);
+            DrawRectangle(rectangle.X, rectangle.Y + rectangle.Height - 1, rectangle.Width, 1, color);
+            DrawRectangle(rectangle.X, rectangle.Y, 1, rectangle.Height, color);
+            DrawRectangle(rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
         }
 
         public Vector2 ScaleScreenCoordinates(Vector2 screenPosition)
         {
             screenPosition.X -= graphics.Viewport.X;
             screenPosition.Y -= graphics.Viewport.Y;
-            return Vector2.Transform(screenPosition, Matrix.Invert(transformation));
-        }
-
-        public void DrawLine(int x0, int y0, int x1, int y1, Color color) 
-        {
-            var rect = new Rectangle
-            {
-                X = x0,
-                Width = x1,
-                Y = y0,
-                Height = y1
-            };
-            batch.Draw(texture, rect, null, color);
+            return Vector2.Transform(screenPosition, Matrix.Invert(resolutionTransform));
         }
 
         private void HandleEffectChange(Effect effect)
@@ -160,7 +150,7 @@ namespace Good.Core
                 currentEffect = effect;
                 batch.End();
                 batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
-                       RasterizerState.CullCounterClockwise, currentEffect, transformation);
+                       RasterizerState.CullCounterClockwise, currentEffect, resolutionTransform);
             }
         }
     }

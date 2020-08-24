@@ -4,10 +4,10 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Good.Game
 {
-    public class State : GameState
+    public class State : MainGameState
     {
-        public override bool UpdateBelow => true;
-        public override bool DrawBelow => true;
+        public override bool IsTranscendent => true;
+        public override bool IsTransparent => true;
 
         public override void Draw()
         {

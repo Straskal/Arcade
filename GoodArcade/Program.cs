@@ -15,7 +15,7 @@ namespace GoodArcade
         {
             using var game = new MainGame();
 
-            var level = new LevelState
+            var level = new Layout
             {
                 Map = new Tilemap
                 {
@@ -49,6 +49,17 @@ namespace GoodArcade
                 Texture = game.Content.Load<Texture2D>("Art/peasant"),
                 Source = new Rectangle(0, 0, 16, 24),
                 Position = new Vector2(10, 10),
+                Behaviors = new List<Behavior>
+                {
+                    new PlayerBehavior()
+                }
+            });
+
+            level.Add(new Sprite
+            {
+                Texture = game.Content.Load<Texture2D>("Art/peasant"),
+                Source = new Rectangle(0, 0, 16, 24),
+                Position = new Vector2(40, 10),
                 Behaviors = new List<Behavior>
                 {
                     new PlayerBehavior()

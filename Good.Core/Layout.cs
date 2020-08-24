@@ -4,38 +4,46 @@ using System.Collections.Generic;
 
 namespace Good.Core
 {
-    public class LevelState : GameState
+    public class Layout : MainGameState
     {
-        public static LevelState Current { get; private set; }
+        public static Layout Current { get; private set; }
 
-        private readonly HashSet<Sprite> spritesToRemove;
+        public readonly List<Sprite> sprites;
+        private readonly Queue<Action> spriteOps;
         private Action<Sprite> onSpriteAdded;
 
-        public LevelState() 
+        public Layout() 
         {
-            Sprites = new List<Sprite>();
-            spritesToRemove = new HashSet<Sprite>();
+            sprites = new List<Sprite>();
+            spriteOps = new Queue<Action>();
 
-            // We don't want to load any added sprites before the level state has entered. Use a dummy func.
-            onSpriteAdded = sprite => { };
+            // Before we enter the layout, defer loading.
+            onSpriteAdded = sprite => spriteOps.Enqueue(() =>
+            {
+                sprite.Behaviors.ForEach(behavior => behavior.Load(sprite));
+                spriteOps.Enqueue(() => sprite.Behaviors.ForEach(behavior => behavior.Loaded(sprite)));
+            });
         }
 
-        internal List<Sprite> Sprites { get; set; }
+        public override Matrix? Transformation =>
+            Matrix.CreateTranslation((int)Math.Floor(-Position.X), (int)Math.Floor(-Position.Y), 0f) * Matrix.CreateScale(Zoom, Zoom, 1f);
+
         public Vector2 Position { get; set; }
+        public float Zoom { get; set; } = 1f;
         public Tilemap Map { get; set; }
 
         public override void Enter()
         {
             Current = this;
 
-            // When we enter the level, we change the behavior of adding sprites so that they are loaded immediately.
+            // Once we enter the layout, any additionally added sprites should be loaded immediately.
             onSpriteAdded = sprite =>
             {
                 sprite.Behaviors.ForEach(behavior => behavior.Load(sprite));
                 sprite.Behaviors.ForEach(behavior => behavior.Loaded(sprite));
             };
 
-            Array.ForEach(Sprites.ToArray(), sprite => onSpriteAdded(sprite));
+            PumpSpriteOperations();
         }
 
         public override void Exit()
@@ -45,22 +53,16 @@ namespace Good.Core
 
         public override void Update()
         {
-            // Iterate over immutable copy of sprites.
-            // This allows sprites to be added without corrupting list.
-            foreach (Sprite sprite in Sprites.ToArray())
+            foreach (var sprite in sprites) 
                 sprite.Behaviors.ForEach(behavior => behavior.Update(sprite));
 
-            foreach (var sprite in spritesToRemove)
-                Sprites.Remove(sprite);
-
-            spritesToRemove.Clear();
+            PumpSpriteOperations();
         }
 
         public override void Draw()
         {
             int mapWidth = Map.Data.GetLength(1);
             int mapHeight = Map.Data.GetLength(0);
-            int tilesetColumns = Map.Tileset.Texture.Width / 16;
 
             for (int i = 0; i < mapHeight; i++) 
             {
@@ -69,8 +71,6 @@ namespace Good.Core
                     int index = Map.Data[i, j];
                     if (index != -1)
                     {
-                        int row = (int)Math.Floor((double)index / tilesetColumns);
-                        int column = index % tilesetColumns;
                         Rectangle source = Map.Tileset.GetIndexSource(index);
                         Vector2 position = new Vector2(j * 16, i * 16);
                         Renderer.Instance.Draw(Map.Tileset.Texture, source, position, Color.White);
@@ -78,27 +78,30 @@ namespace Good.Core
                 }
             }
 
-            Sprites.Sort(new SpritePriorityComparer());
-
-            foreach (var sprite in Sprites) 
+            sprites.Sort((x, y) => x.Priority.CompareTo(y.Priority));
+            foreach (var sprite in sprites) 
                 Renderer.Instance.Draw(sprite.Texture, sprite.Source, sprite.Position, sprite.Color, sprite.FlipFlags);
         }
 
-        public void Add(Sprite sprite) 
+        public void PumpSpriteOperations() 
         {
-            if (Sprites.Contains(sprite))
-                throw new InvalidOperationException("Attempting to add an already existent sprite into level.");
+            while (spriteOps.Count > 0)
+                spriteOps.Dequeue().Invoke();
+        }
 
-            Sprites.Add(sprite);
+        public void Add(Sprite sprite)
+        {
+            spriteOps.Enqueue(() => sprites.Add(sprite));
             onSpriteAdded(sprite);
         }
 
         public void Remove(Sprite sprite) 
         {
-            if (!Sprites.Contains(sprite))
-                throw new InvalidOperationException("Attempting to remove an sprite that does not exist.");
-
-            spritesToRemove.Add(sprite);
+            spriteOps.Enqueue(() => 
+            {
+                sprite.Behaviors.ForEach(behavior => behavior.Unloaded(sprite));
+                sprites.Remove(sprite);
+            });
         }
     }
 }
