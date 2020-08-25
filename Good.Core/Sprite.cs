@@ -34,9 +34,10 @@ namespace Good.Core
         }
 
         public Dictionary<string, Animation> Animations { get; set; } = new Dictionary<string, Animation>();
-        public string CurrentAnimation { get; set; }
+        public string CurrentAnimationName { get; set; }
         public int CurrentFrame { get; set; }
-        public float AnimationTimer { get; set; }
+        public float FrameTimer { get; set; }
+        public Animation CurrentAnimation => Animations[CurrentAnimationName];
     }
 
     public class Sprite
@@ -51,26 +52,27 @@ namespace Good.Core
 
         public void Animate()
         {
-            var anim = AnimationInfo.Animations[AnimationInfo.CurrentAnimation];
+            var currentAnimation = AnimationInfo.CurrentAnimation;
+            var elapsedTime = (float)MainGame.Time.ElapsedGameTime.TotalSeconds;
 
-            if (anim.Speed > 0f && MainGame.Time.TotalGameTime.TotalSeconds > AnimationInfo.AnimationTimer)
+            if ((AnimationInfo.FrameTimer += elapsedTime * currentAnimation.Speed) > 1f)
             {
-                if (++AnimationInfo.CurrentFrame > anim.Frames.Length - 1)
+                if (++AnimationInfo.CurrentFrame > currentAnimation.Frames.Length - 1)
                     AnimationInfo.CurrentFrame = 0;
 
-                DrawInfo.Source = anim.Frames[AnimationInfo.CurrentFrame];
-                AnimationInfo.AnimationTimer += anim.Speed;
+                DrawInfo.Source = currentAnimation.Frames[AnimationInfo.CurrentFrame];
+                AnimationInfo.FrameTimer = 0f;
             }
         }
 
         public void SetAnimation(string name)
         {
-            if (AnimationInfo.Animations.TryGetValue(name, out var animation) && name != AnimationInfo.CurrentAnimation)
+            if (AnimationInfo.Animations.TryGetValue(name, out var animation) && name != AnimationInfo.CurrentAnimationName)
             {
-                AnimationInfo.CurrentAnimation = name;
+                AnimationInfo.CurrentAnimationName = name;
                 AnimationInfo.CurrentFrame = 0;
                 DrawInfo.Source = animation.Frames[0];
-                AnimationInfo.AnimationTimer = (float)MainGame.Time.TotalGameTime.TotalSeconds + animation.Speed;
+                AnimationInfo.FrameTimer = 0f;
             }
         }
 
@@ -89,16 +91,13 @@ namespace Good.Core
                 overlap = overlapX;
                 result = true;
             }
-
-            if (Layout.Current.Grid.IsCollidingAtOffset(this, 0f, direction.Y, out var overlapY))
+            else if (Layout.Current.Grid.IsCollidingAtOffset(this, 0f, direction.Y, out var overlapY))
             {
                 direction.Y += overlapY.Depth.Y;
-
-                if (!result)
-                    overlap = overlapY;
-
+                overlap = overlapY;
                 result = true;
             }
+
             BodyInfo.Position += direction;
             Layout.Current.Grid.Update(this);
             return result;
