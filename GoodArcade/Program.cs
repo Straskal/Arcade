@@ -17,7 +17,7 @@ namespace GoodArcade
 
             var level = new Layout
             {
-                Map = new Tilemap
+                Map = new LayoutMap
                 {
                     Tileset = new Tileset
                     {
@@ -49,9 +49,63 @@ namespace GoodArcade
                 Texture = game.Content.Load<Texture2D>("Art/peasant"),
                 Source = new Rectangle(0, 0, 16, 24),
                 Position = new Vector2(10, 10),
+                Width = 16,
+                Height = 24,
+                Priority = 10,
                 Behaviors = new List<Behavior>
                 {
                     new PlayerBehavior()
+                },
+                CurrentAnimation = "idle",
+                Animations = new Dictionary<string, Animation> 
+                {
+                    { 
+                        "idle", 
+                        new Animation
+                        {
+                            Frames = new[]
+                            {
+                                new Rectangle(0, 0, 16, 24),
+                            },
+                            Speed = 0.5f
+                        }
+                    },
+                    { 
+                        "walk_down", 
+                        new Animation 
+                        {
+                            Frames = new[] 
+                            {
+                                new Rectangle(16, 0, 16, 24),
+                                new Rectangle(32, 0, 16, 24)
+                            },
+                            Speed = 0.5f
+                        } 
+                    },
+                    {
+                        "walk_up",
+                        new Animation
+                        {
+                            Frames = new[]
+                            {
+                                new Rectangle(64, 0, 16, 24),
+                                new Rectangle(80, 0, 16, 24)
+                            },
+                            Speed = 0.5f
+                        }
+                    },
+                    {
+                        "walk_right",
+                        new Animation
+                        {
+                            Frames = new[]
+                            {
+                                new Rectangle(96, 0, 16, 24),
+                                new Rectangle(112, 0, 16, 24)
+                            },
+                            Speed = 0.5f
+                        }
+                    }
                 }
             });
 
@@ -60,14 +114,27 @@ namespace GoodArcade
                 Texture = game.Content.Load<Texture2D>("Art/peasant"),
                 Source = new Rectangle(0, 0, 16, 24),
                 Position = new Vector2(40, 10),
-                Behaviors = new List<Behavior>
+                Width = 16,
+                Height = 24,
+                IsSolid = true,
+                CurrentAnimation = "walk",
+                Animations = new Dictionary<string, Animation>
                 {
-                    new PlayerBehavior()
+                    { "walk", new Animation
+                        {
+                            Frames = new[]
+                            {
+                                new Rectangle(16, 0, 16, 24),
+                                new Rectangle(32, 0, 16, 24)
+                            },
+                            Speed = 0.5f
+                        }
+                    }
                 }
             });
 
             game.Push(level);
-            game.Push(new TilemapEditorState());
+            //game.Push(new TilemapEditorState());
             game.Run();
         }
     }

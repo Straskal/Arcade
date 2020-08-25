@@ -55,4 +55,3 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /build:Font/File.spritefont;Font/BasicFont.spritefont
-

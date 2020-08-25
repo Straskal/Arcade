@@ -9,5 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Good.Core\Good.Core.csproj" />
+    <ProjectReference Include="..\Good.Editor\Good.Editor.csproj" />
   </ItemGroup>
 </Project>

@@ -19,6 +19,7 @@ namespace Good.Core
             stack = new List<MainGameState>();
             stackOps = new Queue<Action>();
 
+            IsFixedTimeStep = true;
             Instance = this;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
