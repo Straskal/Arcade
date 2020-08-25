@@ -44,94 +44,80 @@ namespace GoodArcade
                 }
             };
 
-            level.Add(new Sprite
+            Func<int, int, Sprite> createPlayer = (int x, int y) => new Sprite
             {
-                Texture = game.Content.Load<Texture2D>("Art/peasant"),
-                Source = new Rectangle(0, 0, 16, 24),
-                Position = new Vector2(10, 10),
-                Width = 16,
-                Height = 24,
-                Priority = 10,
                 Behaviors = new List<Behavior>
                 {
                     new PlayerBehavior()
                 },
-                CurrentAnimation = "idle",
-                Animations = new Dictionary<string, Animation> 
+                BodyInfo = new SpriteBodyInfo
                 {
-                    { 
-                        "idle", 
-                        new Animation
-                        {
-                            Frames = new[]
-                            {
-                                new Rectangle(0, 0, 16, 24),
-                            },
-                            Speed = 0.5f
-                        }
-                    },
-                    { 
-                        "walk_down", 
-                        new Animation 
-                        {
-                            Frames = new[] 
-                            {
-                                new Rectangle(16, 0, 16, 24),
-                                new Rectangle(32, 0, 16, 24)
-                            },
-                            Speed = 0.5f
-                        } 
-                    },
+                    Position = new Vector2(x, y),
+                    Width = 16,
+                    Height = 24,
+                },
+                DrawInfo = new SpriteDrawInfo
+                {
+                    Texture = game.Content.Load<Texture2D>("Art/peasant"),
+                    Source = new Rectangle(0, 0, 16, 24),
+                },
+                AnimationInfo = new SpriteAnimationInfo
+                {
+                    CurrentAnimation = "idle",
+                    Animations = new Dictionary<string, SpriteAnimationInfo.Animation>
                     {
-                        "walk_up",
-                        new Animation
                         {
-                            Frames = new[]
+                            "idle",
+                            new SpriteAnimationInfo.Animation
                             {
-                                new Rectangle(64, 0, 16, 24),
-                                new Rectangle(80, 0, 16, 24)
-                            },
-                            Speed = 0.5f
-                        }
-                    },
-                    {
-                        "walk_right",
-                        new Animation
+                                Frames = new[]
+                                {
+                                    new Rectangle(0, 0, 16, 24),
+                                },
+                                Speed = 0.5f
+                            }
+                        },
                         {
-                            Frames = new[]
+                            "walk_down",
+                            new SpriteAnimationInfo.Animation
                             {
-                                new Rectangle(96, 0, 16, 24),
-                                new Rectangle(112, 0, 16, 24)
-                            },
-                            Speed = 0.5f
+                                Frames = new[]
+                                {
+                                    new Rectangle(16, 0, 16, 24),
+                                    new Rectangle(32, 0, 16, 24)
+                                },
+                                Speed = 0.5f
+                            }
+                        },
+                        {
+                            "walk_up",
+                            new SpriteAnimationInfo.Animation
+                            {
+                                Frames = new[]
+                                {
+                                    new Rectangle(64, 0, 16, 24),
+                                    new Rectangle(80, 0, 16, 24)
+                                },
+                                Speed = 0.5f
+                            }
+                        },
+                        {
+                            "walk_right",
+                            new SpriteAnimationInfo.Animation
+                            {
+                                Frames = new[]
+                                {
+                                    new Rectangle(96, 0, 16, 24),
+                                    new Rectangle(112, 0, 16, 24)
+                                },
+                                Speed = 0.5f
+                            }
                         }
                     }
                 }
-            });
+            };
 
-            level.Add(new Sprite
-            {
-                Texture = game.Content.Load<Texture2D>("Art/peasant"),
-                Source = new Rectangle(0, 0, 16, 24),
-                Position = new Vector2(40, 10),
-                Width = 16,
-                Height = 24,
-                IsSolid = true,
-                CurrentAnimation = "walk",
-                Animations = new Dictionary<string, Animation>
-                {
-                    { "walk", new Animation
-                        {
-                            Frames = new[]
-                            {
-                                new Rectangle(16, 0, 16, 24),
-                                new Rectangle(32, 0, 16, 24)
-                            },
-                            Speed = 0.5f
-                        }
-                    }
-                }
-            });
+            level.Add(createPlayer(10, 10));
 
             game.Push(level);
             //game.Push(new TilemapEditorState());

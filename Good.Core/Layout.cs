@@ -55,14 +55,14 @@ namespace Good.Core
         {
             sprites.ForEach(sprite => sprite.UpdateBehaviors());
             sprites.ForEach(sprite => sprite.Animate());
-            sprites.ForEach(sprite => sprite.PreviousPosition = sprite.Position);
+            sprites.ForEach(sprite => sprite.BodyInfo.PreviousPosition = sprite.BodyInfo.Position);
             PumpSpriteOperations();
         }
 
         public override void Draw()
         {
             Map.Draw();
-            sprites.Sort((x, y) => x.Priority.CompareTo(y.Priority));
+            sprites.Sort((x, y) => x.DrawInfo.Priority.CompareTo(y.DrawInfo.Priority));
             sprites.ForEach(sprite => sprite.Draw());
         }
 

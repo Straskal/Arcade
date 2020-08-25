@@ -12,20 +12,20 @@ namespace Good.Game
             var keyboard = Keyboard.GetState();
 
             var direction = Vector2.Zero;
-            var anim = sprite.CurrentAnimation;
+            var anim = sprite.AnimationInfo.CurrentAnimation;
             var speed = 0f;
 
             if (keyboard.IsKeyDown(Keys.D)) 
             {
                 direction.X = 1;
-                sprite.FlipFlags = SpriteEffects.None;
+                sprite.DrawInfo.FlipFlags = SpriteEffects.None;
                 speed = 0.4f;
             }
 
             if (keyboard.IsKeyDown(Keys.A))
             {
                 direction.X = -1;
-                sprite.FlipFlags = SpriteEffects.FlipHorizontally;
+                sprite.DrawInfo.FlipFlags = SpriteEffects.FlipHorizontally;
                 speed = 0.4f;
             }
 
@@ -50,7 +50,7 @@ namespace Good.Game
                 direction.Normalize();
 
             sprite.SetAnimation(anim);
-            sprite.Animations[sprite.CurrentAnimation].Speed = speed;
+            sprite.AnimationInfo.Animations[sprite.AnimationInfo.CurrentAnimation].Speed = speed;
 
             if (sprite.MoveAndCollide(direction, out var overlap))
             {
