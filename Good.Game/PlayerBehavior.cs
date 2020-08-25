@@ -19,28 +19,28 @@ namespace Good.Game
             {
                 direction.X = 1;
                 sprite.DrawInfo.FlipFlags = SpriteEffects.None;
-                speed = 0.4f;
+                speed = 0.2f;
             }
 
             if (keyboard.IsKeyDown(Keys.A))
             {
                 direction.X = -1;
                 sprite.DrawInfo.FlipFlags = SpriteEffects.FlipHorizontally;
-                speed = 0.4f;
+                speed = 0.2f;
             }
 
             if (keyboard.IsKeyDown(Keys.W))
             {
                 anim = "walk_up";
                 direction.Y = -1;
-                speed = 0.4f;
+                speed = 0.2f;
             }
 
             if (keyboard.IsKeyDown(Keys.S))
             {
                 anim = "walk_down";
                 direction.Y = 1;
-                speed = 0.4f;
+                speed = 0.2f;
             }
 
             if (direction.X != 0f)
@@ -56,6 +56,8 @@ namespace Good.Game
             {
 
             }
+
+            Layout.Current.MoveAndClamp(sprite.BodyInfo.Position - new Vector2((Renderer.ResolutionWidth/2) - sprite.BodyInfo.Width /2, Renderer.ResolutionHeight/2 - sprite.BodyInfo.Height / 2));
         }
     }
 }

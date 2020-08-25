@@ -20,6 +20,8 @@ namespace Good.Core
             stackOps = new Queue<Action>();
 
             IsFixedTimeStep = true;
+            TargetElapsedTime = TimeSpan.FromSeconds(1f / 60f);
+
             Instance = this;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;

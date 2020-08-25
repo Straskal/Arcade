@@ -14,7 +14,7 @@ namespace Good.Core
         private readonly Queue<Action> spriteOps;
         private Action<Sprite> onSpriteAdded;
 
-        public Layout() 
+        public Layout()
         {
             sprites = new List<Sprite>();
             spriteOps = new Queue<Action>();
@@ -29,7 +29,7 @@ namespace Good.Core
             Matrix.CreateTranslation((int)Math.Floor(-Position.X), (int)Math.Floor(-Position.Y), 0f) 
             * Matrix.CreateScale(Zoom, Zoom, 1f);
 
-        public Vector2 Position { get; set; } = Vector2.Zero;
+        public Vector2 Position { get; set; }
         public float Zoom { get; set; } = 1f;
         public LayoutMap Map { get; set; }
         public LayoutGrid Grid { get; private set; }
@@ -90,6 +90,11 @@ namespace Good.Core
                 sprites.Remove(sprite);
                 Grid.Remove(sprite);
             });
+        }
+
+        public void MoveAndClamp(Vector2 position)
+        {
+            Position = Vector2.Clamp(position, new Vector2(0, 0), new Vector2(Map.Width - Renderer.ResolutionWidth, Map.Height - Renderer.ResolutionHeight));
         }
     }
 }

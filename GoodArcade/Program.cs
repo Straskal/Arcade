@@ -44,7 +44,7 @@ namespace GoodArcade
                 }
             };
 
-            Func<int, int, Sprite> createPlayer = (int x, int y) => new Sprite
+            Sprite createPlayer(int x, int y) => new Sprite
             {
                 Behaviors = new List<Behavior>
                 {

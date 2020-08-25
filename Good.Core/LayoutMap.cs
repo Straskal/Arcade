@@ -19,10 +19,14 @@ namespace Good.Core
 
     public class LayoutMap
     {
+        public const int TileSize = 16;
+
         public Tileset Tileset { get; set; }
         public int[,] Data { get; set; }
         public int HorizontalCells => Data.GetLength(1);
         public int VerticalCells => Data.GetLength(0);
+        public int Width => Data.GetLength(1) * TileSize;
+        public int Height => Data.GetLength(0) * TileSize;
 
         internal void Draw()
         {

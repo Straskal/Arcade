@@ -76,8 +76,8 @@ namespace Good.Core
 
         public bool MoveAndCollide(Vector2 direction, out Overlap overlap)
         {
-            overlap = new Overlap();
             bool result = false;
+            overlap = new Overlap();
             direction = Vector2.Round(direction);
 
             if (direction == Vector2.Zero)
