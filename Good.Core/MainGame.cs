@@ -70,6 +70,18 @@ namespace Good.Core
             });
         }
 
+        public void PopAbove(MainGameState state) 
+        {
+            MainGameState top;
+            while ((top = stack.Last()) != state)
+                stack.Remove(top);
+        }
+
+        public T GetState<T>() where T : MainGameState 
+        {
+            return stack.FirstOrDefault(state => state is T) as T;
+        }
+
         public void ToggleFullscreen()
         {
             GraphicsManager.ToggleFullScreen();
@@ -90,6 +102,8 @@ namespace Good.Core
 
         protected override void Update(GameTime gameTime)
         {
+            InputManager.Update();
+
             Time = gameTime;
 
             for (int i = stack.Count - 1; i >= 0; i--) 

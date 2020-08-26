@@ -15,7 +15,7 @@ namespace GoodArcade
         {
             using var game = new MainGame();
 
-            var level = new Layout
+            var layout = new Layout
             {
                 Map = new LayoutMap
                 {
@@ -44,7 +44,7 @@ namespace GoodArcade
                 }
             };
 
-            Sprite createPlayer(int x, int y) => new Sprite
+            Sprite createPlayer() => new Sprite
             {
                 Behaviors = new List<Behavior>
                 {
@@ -52,7 +52,6 @@ namespace GoodArcade
                 },
                 BodyInfo = new SpriteBodyInfo
                 {
-                    Position = new Vector2(x, y),
                     Width = 16,
                     Height = 24,
                 },
@@ -117,10 +116,86 @@ namespace GoodArcade
                 }
             };
 
-            level.Add(createPlayer(10, 10));
+            Sprite createPlayerSolid() => new Sprite
+            {
+                Behaviors = new List<Behavior>
+                {
+                },
+                BodyInfo = new SpriteBodyInfo
+                {
+                    Width = 16,
+                    Height = 24,
+                    IsSolid = true
+                },
+                DrawInfo = new SpriteDrawInfo
+                {
+                    Texture = game.Content.Load<Texture2D>("Art/peasant"),
+                    Source = new Rectangle(0, 0, 16, 24),
+                },
+                AnimationInfo = new SpriteAnimationInfo
+                {
+                    CurrentAnimationName = "idle",
+                    Animations = new Dictionary<string, SpriteAnimationInfo.Animation>
+                    {
+                        {
+                            "idle",
+                            new SpriteAnimationInfo.Animation
+                            {
+                                Frames = new[]
+                                {
+                                    new Rectangle(0, 0, 16, 24),
+                                },
+                                Speed = 0.5f
+                            }
+                        },
+                        {
+                            "walk_down",
+                            new SpriteAnimationInfo.Animation
+                            {
+                                Frames = new[]
+                                {
+                                    new Rectangle(16, 0, 16, 24),
+                                    new Rectangle(32, 0, 16, 24)
+                                },
+                                Speed = 0.5f
+                            }
+                        },
+                        {
+                            "walk_up",
+                            new SpriteAnimationInfo.Animation
+                            {
+                                Frames = new[]
+                                {
+                                    new Rectangle(64, 0, 16, 24),
+                                    new Rectangle(80, 0, 16, 24)
+                                },
+                                Speed = 0.5f
+                            }
+                        },
+                        {
+                            "walk_right",
+                            new SpriteAnimationInfo.Animation
+                            {
+                                Frames = new[]
+                                {
+                                    new Rectangle(96, 0, 16, 24),
+                                    new Rectangle(112, 0, 16, 24)
+                                },
+                                Speed = 0.5f
+                            }
+                        }
+                    }
+                }
+            };
 
-            game.Push(level);
-            //game.Push(new TilemapEditorState());
+            Layout.Register("player", createPlayer);
+            Layout.Register("solidplayer", createPlayerSolid);
+            layout.Spawn("player", 10, 10);
+            layout.Spawn("solidplayer", 30, 10);
+            layout.Spawn("solidplayer", 200, 10);
+
+            game.Push(layout);
+            game.Push(new EditorBase());
             game.Run();
         }
     }

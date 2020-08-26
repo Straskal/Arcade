@@ -1,13 +1,15 @@
 ﻿using Good.Core;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Linq;
 
 namespace Good.Editor
 {
-    public class TilemapEditorState : MainGameState
+    public class MapEditor : MainGameState
     {
-        public override bool IsTranscendent => false;
+        public override bool IsTranscendent => true;
         public override bool IsTransparent => true;
 
         const int TileSize = 16;
@@ -17,10 +19,17 @@ namespace Good.Editor
         const int PanelX = Renderer.ResolutionWidth - PanelWidth;
         const int PanelHeight = Renderer.ResolutionHeight;
 
+        private SpriteFont font;
+
         private int selectedTile = 0;
         private int previousScroll = 0;
 
         private bool down = false;
+
+        public override void Enter()
+        {
+            font = MainGame.Instance.Content.Load<SpriteFont>("Font/BasicFont");
+        }
 
         public override void Update()
         {
@@ -141,6 +150,13 @@ namespace Good.Editor
                         }
                     }
                 }
+            }
+
+            var hovered = Layout.Current.Grid.QueryPoint(mousePosition.ToPoint()).FirstOrDefault();
+            if (hovered != null) 
+            {
+                hovered.DrawInfo.Color = Color.Pink;
+                Renderer.Instance.Print(font, mousePosition, hovered.BodyInfo.Position.ToString());
             }
 
             previousScroll = mouse.ScrollWheelValue;

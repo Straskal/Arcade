@@ -49,13 +49,13 @@ namespace Good.Core
         internal void Add(Sprite sprite)
         {
             foreach (var cellPos in GetOccupyingCells(sprite.BodyInfo.Bounds))
-                cells[cellPos.X, cellPos.Y].Sprites.Add(sprite);
+                cells[cellPos.Y, cellPos.X].Sprites.Add(sprite);
         }
 
         internal void Remove(Sprite sprite)
         {
             foreach (var cellPos in GetOccupyingCells(sprite.BodyInfo.PreviousBounds))
-                cells[cellPos.X, cellPos.Y].Sprites.Remove(sprite);
+                cells[cellPos.Y, cellPos.X].Sprites.Remove(sprite);
         }
 
         public bool IsOverlapping(Sprite sprite, out Overlap overlap)
@@ -86,6 +86,14 @@ namespace Good.Core
             return false;
         }
 
+        public IEnumerable<Sprite> QueryPoint(Point point) 
+        {
+            if (TryGetCellPosition(point.ToVector2(), out int col, out int row))
+                return cells[row, col].Sprites.Where(other => other.BodyInfo.Bounds.Contains(point));
+
+            return Enumerable.Empty<Sprite>();
+        }
+
         public IEnumerable<Sprite> QueryBounds(Rectangle bounds)
         {
             return GetOccupyingCells(bounds)
@@ -114,7 +122,7 @@ namespace Good.Core
                 yield return new Point(bottomRightCol, bottomRightRow);
         }
 
-        private bool TryGetCellPosition(Vector2 position, out int column, out int row)
+        public bool TryGetCellPosition(Vector2 position, out int column, out int row)
         {
             column = (int)(position.X / CellSize);
             row = (int)(position.Y / CellSize);

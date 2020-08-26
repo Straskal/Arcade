@@ -6,6 +6,10 @@ namespace Good.Core
 {
     public class Layout : MainGameState
     {
+        private static readonly Dictionary<string, Func<Sprite>> factories = new Dictionary<string, Func<Sprite>>();
+        public static void Register(string name, Func<Sprite> factory) => factories.Add(name, factory);
+        public static Sprite Create(string name) => factories[name].Invoke();
+
         public static Layout Current { get; private set; }
 
         public const int GridCellSize = 128;
@@ -20,8 +24,8 @@ namespace Good.Core
             spriteOps = new Queue<Action>();
             onSpriteAdded = sprite => spriteOps.Enqueue(() =>
             {
-                sprite.Behaviors.ForEach(behavior => behavior.Load(sprite));
-                spriteOps.Enqueue(() => sprite.Behaviors.ForEach(behavior => behavior.Loaded(sprite)));
+                sprite.Load();
+                spriteOps.Enqueue(() => sprite.Created());
             });
         }
 
@@ -40,8 +44,8 @@ namespace Good.Core
             Grid = new LayoutGrid(Map.Data.GetLength(0), Map.Data.GetLength(1), GridCellSize);
             onSpriteAdded = sprite =>
             {
-                sprite.Behaviors.ForEach(behavior => behavior.Load(sprite));
-                sprite.Behaviors.ForEach(behavior => behavior.Loaded(sprite));
+                sprite.Load();
+                sprite.Created();
             };
             PumpSpriteOperations();
         }
@@ -53,7 +57,7 @@ namespace Good.Core
 
         public override void Update()
         {
-            sprites.ForEach(sprite => sprite.UpdateBehaviors());
+            sprites.ForEach(sprite => sprite.Update());
             sprites.ForEach(sprite => sprite.Animate());
             sprites.ForEach(sprite => sprite.BodyInfo.PreviousPosition = sprite.BodyInfo.Position);
             PumpSpriteOperations();
@@ -62,14 +66,31 @@ namespace Good.Core
         public override void Draw()
         {
             Map.Draw();
-            sprites.Sort((x, y) => x.DrawInfo.Priority.CompareTo(y.DrawInfo.Priority));
             sprites.ForEach(sprite => sprite.Draw());
         }
 
         public void PumpSpriteOperations() 
         {
+            bool needSort = spriteOps.Count > 0;
+
             while (spriteOps.Count > 0)
                 spriteOps.Dequeue().Invoke();
+
+            if (needSort)
+                sprites.Sort((x, y) => x.DrawInfo.Priority.CompareTo(y.DrawInfo.Priority));
+        }
+
+        public void Spawn(string name, int x, int y) 
+        {
+            var sprite = Create(name);
+            sprite.BodyInfo.Position = new Vector2(x, y);
+
+            spriteOps.Enqueue(() =>
+            {
+                sprites.Add(sprite);
+                Grid.Add(sprite);
+            });
+            onSpriteAdded.Invoke(sprite);
         }
 
         public void Add(Sprite sprite)
@@ -86,7 +107,7 @@ namespace Good.Core
         {
             spriteOps.Enqueue(() => 
             {
-                sprite.Behaviors.ForEach(behavior => behavior.Unloaded(sprite));
+                sprite.Destroyed();
                 sprites.Remove(sprite);
                 Grid.Remove(sprite);
             });

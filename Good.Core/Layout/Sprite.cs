@@ -47,7 +47,10 @@ namespace Good.Core
         public SpriteAnimationInfo AnimationInfo { get; set; } = new SpriteAnimationInfo();
         public List<Behavior> Behaviors { get; set; } = new List<Behavior>();
 
-        internal void UpdateBehaviors() => Behaviors.ForEach(behavior => behavior.Update(this));
+        internal void Load() => Behaviors.ForEach(behavior => behavior.Load(this));
+        internal void Created() => Behaviors.ForEach(behavior => behavior.Created(this));
+        internal void Destroyed() => Behaviors.ForEach(behavior => behavior.Destroy(this));
+        internal void Update() => Behaviors.ForEach(behavior => behavior.Update(this));
         internal void Draw() => Renderer.Instance.Draw(DrawInfo.Texture, DrawInfo.Source, BodyInfo.Position, DrawInfo.Color, DrawInfo.FlipFlags);
 
         public void Animate()
