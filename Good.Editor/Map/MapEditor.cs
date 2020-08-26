@@ -39,7 +39,7 @@ namespace Good.Editor
         public override void Draw()
         {
             var mouse = Mouse.GetState();
-            var mousePosition = Renderer.Instance.ScaleScreenCoordinates(new Vector2(mouse.X, mouse.Y));
+            var mousePosition = Renderer.Instance.TransformScreenCoords(new Vector2(mouse.X, mouse.Y));
             var level = Layout.Current;
             var map = level.Map;
 

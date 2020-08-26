@@ -18,6 +18,7 @@ namespace Good.Core
 
         private Effect currentEffect;
         private Matrix resolutionTransform;
+        private Matrix stateTransform;
 
         internal Renderer(GraphicsDevice graphicsDevice)
         {
@@ -75,9 +76,9 @@ namespace Good.Core
         internal void BeginDraw(Matrix? transform = null)
         {
             currentEffect = null;
-            var transformation = transform.HasValue ? transform.Value * resolutionTransform : resolutionTransform;
+            stateTransform = transform.HasValue ? transform.Value * resolutionTransform : resolutionTransform;
             batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
-                       RasterizerState.CullCounterClockwise, currentEffect, transformation);
+                       RasterizerState.CullCounterClockwise, currentEffect, stateTransform);
         }
 
         internal void EndDraw()
@@ -136,11 +137,12 @@ namespace Good.Core
             DrawRectangle(rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
         }
 
-        public Vector2 ScaleScreenCoordinates(Vector2 screenPosition)
+        public Vector2 TransformScreenCoords(Vector2 screenPosition)
         {
             screenPosition.X -= graphics.Viewport.X;
             screenPosition.Y -= graphics.Viewport.Y;
-            return Vector2.Transform(screenPosition, Matrix.Invert(resolutionTransform));
+
+            return Vector2.Transform(screenPosition, Matrix.Invert(stateTransform));
         }
 
         private void HandleEffectChange(Effect effect)
