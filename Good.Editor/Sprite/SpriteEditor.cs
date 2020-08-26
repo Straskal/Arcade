@@ -74,7 +74,7 @@ namespace Good.Editor
             else if (!InputManager.IsMouseLeftDown() && isDragging)
             {
                 isDragging = false;
-                editorBase.CommandQueue.Enqueue(new MoveSpriteCommand(selected, selected.BodyInfo.Position, selectedPreviousPosition));
+                editorBase.CommandQueue.Insert(new MoveSpriteCommand(selected, selected.BodyInfo.Position, selectedPreviousPosition));
             }
 
             if (isDragging)
@@ -83,7 +83,7 @@ namespace Good.Editor
             if (deleteSpriteAction.WasPressed() && selected != null) 
             {
                 selected.BodyInfo.Position = selectedPreviousPosition;
-                editorBase.CommandQueue.Enqueue(new RemoveSpriteCommand(selected));
+                editorBase.CommandQueue.Insert(new RemoveSpriteCommand(selected));
                 selected = null;
                 isDragging = false;
             }
