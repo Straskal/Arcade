@@ -20,6 +20,7 @@ namespace Good.Core
     public class LayoutMap
     {
         public const int TileSize = 16;
+        public const int EmptyTile = -1;
 
         public Tileset Tileset { get; set; }
         public int[,] Data { get; set; }

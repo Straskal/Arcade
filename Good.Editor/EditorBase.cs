@@ -14,21 +14,21 @@ namespace Good.Editor
         public override bool IsTranscendent => false;
         public override bool IsTransparent => true;
 
-        public CommandQueue CommandQueue { get; private set; }
+        public CommandQueue Commands { get; private set; }
 
         public override void Enter()
         {
             gotoSpriteEditor = InputManager.NewPressedAction(Keys.D1);
             gotoTileEditor = InputManager.NewPressedAction(Keys.D2);
 
-            CommandQueue = new CommandQueue();
+            Commands = new CommandQueue();
 
             MainGame.Instance.Push(new SpriteEditorBase());
         }
 
         public override void Update()
         {
-            CommandQueue.Update();
+            Commands.Update();
 
             Layout.Current.PumpSpriteOperations();
 
