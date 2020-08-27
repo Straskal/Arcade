@@ -32,6 +32,12 @@ namespace Good.Editor.Map
 
             mousePosition = InputManager.GetMousePosition();
 
+            DrawGrid();
+            currentMode.Invoke();
+        }
+
+        private void DrawGrid() 
+        {
             int mapHeight = Layout.Current.Map.Data.GetLength(0);
             int mapWidth = Layout.Current.Map.Data.GetLength(1);
 
@@ -40,8 +46,6 @@ namespace Good.Editor.Map
 
             for (int i = 0; i < mapWidth; i++)
                 Renderer.Instance.DrawRectangle(i * LayoutMap.TileSize, 0, 1, mapHeight * LayoutMap.TileSize, new Color(50, 50, 50, 50));
-
-            currentMode.Invoke();
         }
 
         private void Paint() 
