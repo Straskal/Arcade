@@ -118,9 +118,6 @@ namespace GoodArcade
 
             Sprite createPlayerSolid() => new Sprite
             {
-                Behaviors = new List<Behavior>
-                {
-                },
                 BodyInfo = new SpriteBodyInfo
                 {
                     Width = 16,
@@ -190,6 +187,7 @@ namespace GoodArcade
 
             Layout.Register("player", createPlayer);
             Layout.Register("solidplayer", createPlayerSolid);
+
             layout.Spawn("player", 10, 10);
             layout.Spawn("solidplayer", 30, 10);
             layout.Spawn("solidplayer", 200, 10);
