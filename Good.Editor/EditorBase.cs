@@ -1,5 +1,6 @@
 ﻿using Good.Core;
 using Good.Editor.Command;
+using Good.Editor.Map;
 using Microsoft.Xna.Framework.Input;
 
 namespace Good.Editor
@@ -22,7 +23,7 @@ namespace Good.Editor
 
             CommandQueue = new CommandQueue();
 
-            MainGame.Instance.Push(new SpriteEditor());
+            MainGame.Instance.Push(new SpriteEditorBase());
         }
 
         public override void Update()
@@ -34,13 +35,13 @@ namespace Good.Editor
             if (gotoSpriteEditor.WasPressed()) 
             {
                 MainGame.Instance.PopAbove(this);
-                MainGame.Instance.Push(new SpriteEditor());
+                MainGame.Instance.Push(new SpriteEditorBase());
             }
 
             if (gotoTileEditor.WasPressed())
             {
                 MainGame.Instance.PopAbove(this);
-                MainGame.Instance.Push(new MapEditor());
+                MainGame.Instance.Push(new MapEditorBase());
             }
         }
     }

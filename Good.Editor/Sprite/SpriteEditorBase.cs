@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Good.Editor
 {
-    public class SpriteEditor : MainGameState
+    public class SpriteEditorBase : MainGameState
     {
         private readonly Color HoveredSpriteColor = Color.Pink;
         private readonly Color SelectedSpriteColor = Color.White;
@@ -36,6 +36,12 @@ namespace Good.Editor
             font = MainGame.Instance.Content.Load<SpriteFont>("Font/BasicFont");
         }
 
+        public override void Exit()
+        {
+            if (lastHovered != null)
+                lastHovered.DrawInfo.Color = lastHoveredColor;
+        }
+
         public override void Update()
         {
             mousePosition = InputManager.GetMousePosition();
@@ -43,7 +49,7 @@ namespace Good.Editor
             var hovered = Layout.Current.Grid.QueryPoint(mousePosition.ToPoint()).FirstOrDefault();
 
             // Hovered sprite changes.
-            if (hovered != lastHovered)
+            if (!isDragging && hovered != lastHovered)
             {
                 if (lastHovered != null) 
                     lastHovered.DrawInfo.Color = lastHoveredColor;
@@ -74,11 +80,16 @@ namespace Good.Editor
             else if (!InputManager.IsMouseLeftDown() && isDragging)
             {
                 isDragging = false;
-                editorBase.CommandQueue.Insert(new MoveSpriteCommand(selected, selected.BodyInfo.Position, selectedPreviousPosition));
+
+                if (selected.BodyInfo.Position != selectedPreviousPosition)
+                    editorBase.CommandQueue.Insert(new MoveSpriteCommand(selected, selected.BodyInfo.Position, selectedPreviousPosition));
             }
 
             if (isDragging)
+            {
                 selected.BodyInfo.Position = Vector2.Round(mousePosition - selectedOffset);
+                Layout.Current.Grid.Update(selected);
+            }
 
             if (deleteSpriteAction.WasPressed() && selected != null) 
             {
@@ -89,20 +100,23 @@ namespace Good.Editor
             }
 
             lastHovered = hovered;
+
+            if (InputManager.IsMouseMiddleDown())
+                Layout.Current.Position -= InputManager.GetMouseMotion();
         }
 
         public override void Draw()
         {
-            if (selected != null)
-            {
-                var selectedBox = selected.BodyInfo.Bounds;
-                selectedBox.X -= 1;
-                selectedBox.Y -= 1;
-                selectedBox.Width += 2;
-                selectedBox.Height += 2;
+            //if (selected != null)
+            //{
+            //    var selectedBox = selected.BodyInfo.Bounds;
+            //    selectedBox.X -= 1;
+            //    selectedBox.Y -= 1;
+            //    selectedBox.Width += 2;
+            //    selectedBox.Height += 2;
 
-                Renderer.Instance.DrawRectangleLines(selectedBox, SelectedSpriteColor);
-            }
+            //    Renderer.Instance.DrawRectangleLines(selectedBox, SelectedSpriteColor);
+            //}
         }
     }
 }

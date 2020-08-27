@@ -33,6 +33,11 @@ namespace Good.Core
             return Renderer.Instance.TransformScreenCoords(state.MouseState.Position.ToVector2());
         }
 
+        public static bool IsMouseMiddleDown()
+        {
+            return state.MouseState.MiddleButton == ButtonState.Pressed;
+        }
+
         public static bool IsMouseLeftDown()
         {
             return state.MouseState.LeftButton == ButtonState.Pressed;
@@ -41,6 +46,24 @@ namespace Good.Core
         public static bool WasMouseLeftPressed()
         {
             return state.MouseState.LeftButton == ButtonState.Pressed && state.PreviousMouseState.LeftButton == ButtonState.Released;
+        }
+
+        public static bool IsMouseRightDown()
+        {
+            return state.MouseState.RightButton == ButtonState.Pressed;
+        }
+
+        public static bool WasMouseRightPressed()
+        {
+            return state.MouseState.RightButton == ButtonState.Pressed && state.PreviousMouseState.RightButton == ButtonState.Released;
+        }
+
+        public static Vector2 GetMouseMotion() 
+        {
+            var current = Renderer.Instance.TransformScreenCoords(state.MouseState.Position.ToVector2());
+            var previous = Renderer.Instance.TransformScreenCoords(state.PreviousMouseState.Position.ToVector2());
+
+            return current - previous;
         }
 
         public static PressedAction NewPressedAction(params Keys[] keys)

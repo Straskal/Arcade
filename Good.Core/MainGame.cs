@@ -74,7 +74,10 @@ namespace Good.Core
         {
             MainGameState top;
             while ((top = stack.Last()) != state)
+            {
+                top.Exit();
                 stack.Remove(top);
+            }
         }
 
         public T GetState<T>() where T : MainGameState 

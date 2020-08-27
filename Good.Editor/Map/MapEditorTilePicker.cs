@@ -3,11 +3,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Linq;
 
 namespace Good.Editor
 {
-    public class MapEditor : MainGameState
+    public class MapEditorTilePicker : MainGameState
     {
         public override bool IsTranscendent => true;
         public override bool IsTransparent => true;
@@ -21,10 +20,11 @@ namespace Good.Editor
 
         private SpriteFont font;
 
-        private int selectedTile = 0;
         private int previousScroll = 0;
 
         private bool down = false;
+
+        public int SelectedTile = 0;
 
         public override void Enter()
         {
@@ -70,18 +70,6 @@ namespace Good.Editor
                 Layout.Current.Zoom -= 0.1f;
             }
 
-            // Grid
-            {
-                int mapHeight = map.Data.GetLength(0);
-                int mapWidth = map.Data.GetLength(1);
-
-                for (int i = 0; i < mapHeight; i++)
-                    Renderer.Instance.DrawRectangle(0, i * TileSize, mapWidth * TileSize, 1, new Color(50, 50, 50, 50));
-
-                for (int i = 0; i < mapWidth; i++)
-                    Renderer.Instance.DrawRectangle(i * TileSize, 0, 1, mapHeight * TileSize, new Color(50, 50, 50, 50));
-            }
-
             // Panel
             Renderer.Instance.DrawRectangle(new Rectangle(PanelX, 0, PanelWidth, PanelHeight), new Color(Color.Black, 0.9f));
 
@@ -102,7 +90,7 @@ namespace Good.Editor
                     Renderer.Instance.Draw(map.Tileset.Texture, source, position, Color.White);
                     x += TileSize + 1;
 
-                    if (i == selectedTile)
+                    if (i == SelectedTile)
                         Renderer.Instance.DrawRectangle(new Rectangle((int)position.X, (int)position.Y, TileSize, TileSize), selectedColor);
 
                     if ((i + 1) % 4 == 0)
@@ -119,44 +107,11 @@ namespace Good.Editor
                 max = max / (TileSize * TileSize) - 1;
 
                 if (mouse.ScrollWheelValue < previousScroll)
-                    selectedTile++;
+                    SelectedTile++;
                 else if (mouse.ScrollWheelValue > previousScroll)
-                    selectedTile--;
+                    SelectedTile--;
 
-                selectedTile = MathHelper.Clamp(selectedTile, 0, max);
-            }
-
-            // Paint the selected tile
-            {
-                if (mousePosition.X < PanelX) 
-                {
-                    int mapWidth = level.Map.Data.GetLength(1);
-                    int mapHeight = level.Map.Data.GetLength(0);
-                    int x = (int)Math.Floor(mousePosition.X / TileSize);
-                    int y = (int)Math.Floor(mousePosition.Y / TileSize);
-
-                    if (x >= 0 && x < mapWidth && y >= 0 && y < mapHeight)
-                    {
-                        if (mouse.RightButton == ButtonState.Pressed)
-                            level.Map.Data[y, x] = -1;
-                        else if (mouse.LeftButton == ButtonState.Pressed)
-                            level.Map.Data[y, x] = selectedTile;
-                        else
-                        {
-                            Rectangle tileSource = level.Map.Tileset.GetIndexSource(selectedTile);
-                            mousePosition.X = (float)Math.Floor(mousePosition.X / 16) * 16;
-                            mousePosition.Y = (float)Math.Floor(mousePosition.Y / 16) * 16;
-                            Renderer.Instance.Draw(level.Map.Tileset.Texture, tileSource, mousePosition, new Color(200, 200, 200, 200));
-                        }
-                    }
-                }
-            }
-
-            var hovered = Layout.Current.Grid.QueryPoint(mousePosition.ToPoint()).FirstOrDefault();
-            if (hovered != null) 
-            {
-                hovered.DrawInfo.Color = Color.Pink;
-                Renderer.Instance.Print(font, mousePosition, hovered.BodyInfo.Position.ToString());
+                SelectedTile = MathHelper.Clamp(SelectedTile, 0, max);
             }
 
             previousScroll = mouse.ScrollWheelValue;
