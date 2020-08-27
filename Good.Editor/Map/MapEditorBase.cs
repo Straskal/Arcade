@@ -11,7 +11,7 @@ namespace Good.Editor.Map
         public override bool IsTransparent => true;
         public override Matrix? Transformation => Layout.Current.Transformation;
 
-        private readonly MapEditorTilePicker tilePicker = new MapEditorTilePicker();
+        private readonly TilePicker tilePicker = new TilePicker();
         private EditorBase editorBase;
         private Action currentMode;
         private Vector2 mousePosition;

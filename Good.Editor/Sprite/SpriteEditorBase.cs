@@ -1,6 +1,5 @@
 ﻿using Good.Core;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Linq;
@@ -17,51 +16,72 @@ namespace Good.Editor
         public override Matrix? Transformation => Layout.Current.Transformation;
 
         private EditorBase editorBase;
-        private SpriteFont font;
-        private Sprite selected;
-        private Sprite lastHovered;
-        private Color lastHoveredColor;
-        private Vector2 mousePosition;
-        private Vector2 selectedOffset;
-        private bool isDragging;
-        private Vector2 selectedPreviousPosition;
+        private SpritePicker spritePicker;
 
+        private Sprite selected;
+        private Vector2 selectedOffset;
+        private Vector2 selectedPreviousPosition;
+        private Sprite previousHovered;
+        private Color previousHoveredColor;
+        private Vector2 mousePosition;
         private PressedAction deleteSpriteAction;
+        private Action currentMode;
 
         public override void Enter()
         {
             editorBase = MainGame.Instance.GetState<EditorBase>() ?? throw new InvalidOperationException("The sprite editor must be stacked on top of the editor base.");
+            spritePicker = new SpritePicker();
+            MainGame.Instance.Push(spritePicker);
             deleteSpriteAction = InputManager.NewPressedAction(Keys.Delete);
-
-            font = MainGame.Instance.Content.Load<SpriteFont>("Font/BasicFont");
+            currentMode = Select;
         }
 
         public override void Exit()
         {
-            if (lastHovered != null)
-                lastHovered.DrawInfo.Color = lastHoveredColor;
+            if (previousHovered != null)
+                previousHovered.DrawInfo.Color = previousHoveredColor;
         }
 
         public override void Update()
         {
             mousePosition = InputManager.GetMousePosition();
+            currentMode.Invoke();
 
+            if (InputManager.IsMouseMiddleDown())
+                Layout.Current.Position -= InputManager.GetMouseMotion();
+        }
+
+        public override void Draw()
+        {
+            if (selected != null)
+            {
+                var selectedBox = selected.BodyInfo.Bounds;
+                selectedBox.X -= 1;
+                selectedBox.Y -= 1;
+                selectedBox.Width += 2;
+                selectedBox.Height += 2;
+                Renderer.Instance.DrawRectangleLines(selectedBox, SelectedSpriteColor);
+            }
+        }
+
+        private void Select()
+        {
             var hovered = Layout.Current.Grid.QueryPoint(mousePosition.ToPoint()).FirstOrDefault();
 
-            // Hovered sprite changes.
-            if (!isDragging && hovered != lastHovered)
+            if (hovered != previousHovered)
             {
-                if (lastHovered != null) 
-                    lastHovered.DrawInfo.Color = lastHoveredColor;
+                if (previousHovered != null)
+                    previousHovered.DrawInfo.Color = previousHoveredColor;
 
                 if (hovered != null)
                 {
-                    lastHoveredColor = hovered.DrawInfo.Color;
+                    previousHoveredColor = hovered.DrawInfo.Color;
                     hovered.DrawInfo.Color = HoveredSpriteColor;
                 }
             }
 
-            // Selected sprite changes.
+            previousHovered = hovered;
+
             if (InputManager.WasMouseLeftPressed())
             {
                 selected = hovered;
@@ -70,53 +90,35 @@ namespace Good.Editor
                     selectedPreviousPosition = selected.BodyInfo.Position;
             }
 
-            // If we're hovered over a sprite and not already dragging, then drag.
-            if (InputManager.IsMouseLeftDown() && hovered != null && !isDragging)
-            {
-                selectedOffset = mousePosition - hovered.BodyInfo.Position;
-                isDragging = true;
-            }
-            // Once we've stopped dragging, enqueue a move command.
-            else if (!InputManager.IsMouseLeftDown() && isDragging)
-            {
-                isDragging = false;
-
-                if (selected.BodyInfo.Position != selectedPreviousPosition)
-                    editorBase.Commands.Insert(new MoveSpriteCommand(selected, selected.BodyInfo.Position, selectedPreviousPosition));
-            }
-
-            if (isDragging)
-            {
-                selected.BodyInfo.Position = Vector2.Round(mousePosition - selectedOffset);
-                Layout.Current.Grid.Update(selected);
-            }
-
-            if (deleteSpriteAction.WasPressed() && selected != null) 
+            if (deleteSpriteAction.WasPressed() && selected != null)
             {
                 selected.BodyInfo.Position = selectedPreviousPosition;
                 editorBase.Commands.Insert(new RemoveSpriteCommand(selected));
                 selected = null;
-                isDragging = false;
             }
 
-            lastHovered = hovered;
-
-            if (InputManager.IsMouseMiddleDown())
-                Layout.Current.Position -= InputManager.GetMouseMotion();
+            if (InputManager.IsMouseLeftDown() && InputManager.GetMouseMotion() != Vector2.Zero && hovered != null) 
+            {
+                selectedOffset = mousePosition - hovered.BodyInfo.Position;
+                currentMode = Drag;
+            }
         }
 
-        public override void Draw()
+        private void Drag() 
         {
-            //if (selected != null)
-            //{
-            //    var selectedBox = selected.BodyInfo.Bounds;
-            //    selectedBox.X -= 1;
-            //    selectedBox.Y -= 1;
-            //    selectedBox.Width += 2;
-            //    selectedBox.Height += 2;
+            if (selected == null)
+                return;
 
-            //    Renderer.Instance.DrawRectangleLines(selectedBox, SelectedSpriteColor);
-            //}
+            selected.BodyInfo.Position = Vector2.Round(mousePosition - selectedOffset);
+            Layout.Current.Grid.Update(selected);
+
+            if (!InputManager.IsMouseLeftDown()) 
+            {
+                if (selected.BodyInfo.Position != selectedPreviousPosition)
+                    editorBase.Commands.Insert(new MoveSpriteCommand(selected, selected.BodyInfo.Position, selectedPreviousPosition));
+
+                currentMode = Select;
+            }
         }
     }
 }

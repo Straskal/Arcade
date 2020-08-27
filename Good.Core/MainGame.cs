@@ -105,13 +105,15 @@ namespace Good.Core
 
         protected override void Update(GameTime gameTime)
         {
-            InputManager.Update();
+            View.AdjustResolution();
+            InputManager.Poll();
 
             Time = gameTime;
 
             for (int i = stack.Count - 1; i >= 0; i--) 
             {
                 var state = stack.ElementAt(i);
+                View.UpdateTransformation(state.Transformation);
                 state.Update();
                 if (!state.IsTranscendent) break;
             }
@@ -124,14 +126,13 @@ namespace Good.Core
 
         protected override void Draw(GameTime gameTime)
         {
-            Renderer.FrameStart();
-
             for (int i = 0; i < stack.Count; i++)
             {
                 if (i == stack.Count - 1 || stack.ElementAt(i + 1).IsTransparent) 
                 {
                     var state = stack.ElementAt(i);
-                    Renderer.BeginDraw(state.Transformation);
+                    View.UpdateTransformation(state.Transformation);
+                    Renderer.BeginDraw(View.CurrentTransform);
                     state.Draw();
                     Renderer.EndDraw();
                 }

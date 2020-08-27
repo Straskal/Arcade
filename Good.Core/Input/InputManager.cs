@@ -18,7 +18,7 @@ namespace Good.Core
             public GamePadState PreviousGamePadState { get; set; }
         }
 
-        internal static void Update()
+        internal static void Poll()
         {
             state.PreviousMouseState = state.MouseState;
             state.PreviousKeyState = state.KeyState;
@@ -30,7 +30,17 @@ namespace Good.Core
 
         public static Vector2 GetMousePosition() 
         {
-            return Renderer.Instance.TransformScreenCoords(state.MouseState.Position.ToVector2());
+            return View.TransformScreenCoords(state.MouseState.Position.ToVector2());
+        }
+
+        public static bool ScrollUp()
+        {
+            return state.MouseState.ScrollWheelValue > state.PreviousMouseState.ScrollWheelValue;
+        }
+
+        public static bool ScrollDown()
+        {
+            return state.MouseState.ScrollWheelValue < state.PreviousMouseState.ScrollWheelValue;
         }
 
         public static bool IsMouseMiddleDown()
@@ -60,8 +70,8 @@ namespace Good.Core
 
         public static Vector2 GetMouseMotion() 
         {
-            var current = Renderer.Instance.TransformScreenCoords(state.MouseState.Position.ToVector2());
-            var previous = Renderer.Instance.TransformScreenCoords(state.PreviousMouseState.Position.ToVector2());
+            var current = View.TransformScreenCoords(state.MouseState.Position.ToVector2());
+            var previous = View.TransformScreenCoords(state.PreviousMouseState.Position.ToVector2());
 
             return current - previous;
         }
