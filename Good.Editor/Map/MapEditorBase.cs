@@ -15,6 +15,10 @@ namespace Good.Editor.Map
 
         private EditorBase editorBase;
 
+        private bool isPainting;
+        private bool isErasing;
+        private PaintTileCommand currentPaintCommand;
+
         public override void Enter()
         {
             editorBase = MainGame.Instance.GetState<EditorBase>() ?? throw new InvalidOperationException("The map editor must be stacked on top of the editor base.");
@@ -28,6 +32,24 @@ namespace Good.Editor.Map
 
             var mousePosition = InputManager.GetMousePosition();
             var map = Layout.Current.Map;
+
+            {
+                // If we were painting or erasing but then stopped, insert the total paint command.
+
+                if (!InputManager.IsMouseRightDown() && isErasing)
+                {
+                    isErasing = false;
+                    editorBase.CommandQueue.Insert(currentPaintCommand);
+                    currentPaintCommand = null;
+                }
+
+                if (!InputManager.IsMouseLeftDown() && isPainting)
+                {
+                    isPainting = false;
+                    editorBase.CommandQueue.Insert(currentPaintCommand);
+                    currentPaintCommand = null;
+                }
+            }
 
             {
                 int mapHeight = map.Data.GetLength(0);
@@ -49,9 +71,25 @@ namespace Good.Editor.Map
                 if (x >= 0 && x < mapWidth && y >= 0 && y < mapHeight)
                 {
                     if (InputManager.IsMouseRightDown() && map.Data[y, x] != -1)
-                        editorBase.CommandQueue.Insert(new PaintTileCommand(x, y, -1, map.Data));
+                    {
+                        if (!isErasing) 
+                        {
+                            isErasing = true;
+                            currentPaintCommand = new PaintTileCommand(map.Data);
+                        }
+
+                        currentPaintCommand.PaintTile(x, y, -1);
+                    }
                     else if (InputManager.IsMouseLeftDown() && map.Data[y, x] != tilePicker.SelectedTile)
-                        editorBase.CommandQueue.Insert(new PaintTileCommand(x, y, tilePicker.SelectedTile, map.Data));
+                    {
+                        if (!isPainting)
+                        {
+                            isPainting = true;
+                            currentPaintCommand = new PaintTileCommand(map.Data);
+                        }
+
+                        currentPaintCommand.PaintTile(x, y, tilePicker.SelectedTile);
+                    }
                     else
                     {
                         var tileSource = map.Tileset.GetIndexSource(tilePicker.SelectedTile);

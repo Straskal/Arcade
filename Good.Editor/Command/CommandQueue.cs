@@ -9,7 +9,7 @@ namespace Good.Editor.Command
     /// </summary>
     public class CommandQueue
     {
-        public const int Max = 20;
+        public const int Max = 30;
 
         private readonly ICommand[] queue = new ICommand[Max];
         private readonly ModifiedPressedAction undo;
@@ -28,10 +28,16 @@ namespace Good.Editor.Command
         public void Update()
         {
             if (undo.WasPressed() && position != start) 
-                queue[Wrap(--position)].Undo();
+            {
+                position = Wrap(--position);
+                queue[position].Undo();
+            }
 
-            if (redo.WasPressed() && position != end) 
-                queue[Wrap(position++)].Do();
+            if (redo.WasPressed() && position != end)
+            {
+                queue[position].Do();
+                position = Wrap(++position);
+            }
         }
 
         public void Insert(ICommand command) 
@@ -45,7 +51,8 @@ namespace Good.Editor.Command
                     start = Wrap(++start);
             }
 
-            queue[Wrap(position++)] = command;
+            queue[position++] = command;
+            position = Wrap(position);
         }
 
         private int Wrap(int position) 
