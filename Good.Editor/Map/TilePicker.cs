@@ -9,8 +9,8 @@ namespace Good.Editor
         private const int TilesPerRow = 4;
         private const int TileSpaceBuffer = 5;
         private const int PanelWidth = TileSize * TilesPerRow + TileSpaceBuffer;
-        private const int PanelX = Renderer.ResolutionWidth - PanelWidth;
-        private const int PanelHeight = Renderer.ResolutionHeight;
+        private const int PanelX = View.ResolutionWidth - PanelWidth;
+        private const int PanelHeight = View.ResolutionHeight;
 
         public override bool IsTranscendent => true;
         public override bool IsTransparent => true;

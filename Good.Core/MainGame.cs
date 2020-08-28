@@ -11,18 +11,22 @@ namespace Good.Core
         public static MainGame Instance { get; private set; }
         public static GameTime Time { get; private set; }
 
-        private readonly List<MainGameState> stack;
-        private readonly Queue<Action> stackOps;
+        public GraphicsDeviceManager GraphicsManager { get; }
+        public Renderer Renderer { get; }
+
+        private readonly List<MainGameState> states;
+        private readonly Queue<Action> stackOperations;
 
         public MainGame()
         {
-            stack = new List<MainGameState>();
-            stackOps = new Queue<Action>();
+            Instance = this;
+
+            states = new List<MainGameState>();
+            stackOperations = new Queue<Action>();
 
             IsFixedTimeStep = true;
             TargetElapsedTime = TimeSpan.FromSeconds(1f / 60f);
 
-            Instance = this;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             Window.AllowUserResizing = true;
@@ -31,8 +35,8 @@ namespace Good.Core
             GraphicsManager = new GraphicsDeviceManager(this)
             {
                 IsFullScreen = false,
-                PreferredBackBufferWidth = Renderer.ResolutionWidth * 3,
-                PreferredBackBufferHeight = Renderer.ResolutionHeight * 3,
+                PreferredBackBufferWidth = View.ResolutionWidth * 3,
+                PreferredBackBufferHeight = View.ResolutionHeight * 3,
                 HardwareModeSwitch = false,
                 SynchronizeWithVerticalRetrace = true,
                 PreferMultiSampling = false,
@@ -40,11 +44,9 @@ namespace Good.Core
             };
 
             GraphicsManager.ApplyChanges();
+
             Renderer = new Renderer(GraphicsDevice);
         }
-
-        public GraphicsDeviceManager GraphicsManager { get; }
-        public Renderer Renderer { get; }
 
         protected override void UnloadContent()
         {
@@ -53,36 +55,34 @@ namespace Good.Core
 
         public void Push(MainGameState state) 
         {
-            stackOps.Enqueue(() => 
+            stackOperations.Enqueue(() => 
             {
-                stack.Add(state);
+                states.Add(state);
                 state.Enter();
             });
         }
 
         public void Pop() 
         {
-            stackOps.Enqueue(() =>
+            stackOperations.Enqueue(() =>
             {
-                var state = stack.Last();
+                var state = states.Last();
                 state.Exit();
-                stack.Remove(state);
+                states.Remove(state);
             });
         }
 
         public void PopAbove(MainGameState state) 
         {
-            MainGameState top;
-            while ((top = stack.Last()) != state)
-            {
-                top.Exit();
-                stack.Remove(top);
-            }
+            int i = states.Count - 1;
+
+            while (states.ElementAt(i--) != state) 
+                Pop();
         }
 
         public T GetState<T>() where T : MainGameState 
         {
-            return stack.FirstOrDefault(state => state is T) as T;
+            return states.FirstOrDefault(state => state is T) as T;
         }
 
         public void ToggleFullscreen()
@@ -96,8 +96,8 @@ namespace Good.Core
             }
             else
             {
-                GraphicsManager.PreferredBackBufferWidth = Renderer.ResolutionWidth * 3;
-                GraphicsManager.PreferredBackBufferHeight = Renderer.ResolutionHeight * 3;
+                GraphicsManager.PreferredBackBufferWidth = View.ResolutionWidth * 3;
+                GraphicsManager.PreferredBackBufferHeight = View.ResolutionHeight * 3;
             }
 
             GraphicsManager.ApplyChanges();
@@ -105,32 +105,32 @@ namespace Good.Core
 
         protected override void Update(GameTime gameTime)
         {
-            View.AdjustResolution();
+            Time = gameTime;
             InputManager.Poll();
 
-            Time = gameTime;
-
-            for (int i = stack.Count - 1; i >= 0; i--) 
+            for (int i = states.Count - 1; i >= 0; i--) 
             {
-                var state = stack.ElementAt(i);
+                var state = states.ElementAt(i);
                 View.UpdateTransformation(state.Transformation);
                 state.Update();
                 if (!state.IsTranscendent) break;
             }
 
-            while (stackOps.Count > 0) 
-                stackOps.Dequeue().Invoke();
+            while (stackOperations.Count > 0) 
+                stackOperations.Dequeue().Invoke();
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            for (int i = 0; i < stack.Count; i++)
+            View.AdjustResolution();
+
+            for (int i = 0; i < states.Count; i++)
             {
-                if (i == stack.Count - 1 || stack.ElementAt(i + 1).IsTransparent) 
+                if (i == states.Count - 1 || states.ElementAt(i + 1).IsTransparent) 
                 {
-                    var state = stack.ElementAt(i);
+                    var state = states.ElementAt(i);
                     View.UpdateTransformation(state.Transformation);
                     Renderer.BeginDraw(View.CurrentTransform);
                     state.Draw();

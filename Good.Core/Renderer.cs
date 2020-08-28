@@ -8,16 +8,12 @@ namespace Good.Core
     {
         public static Renderer Instance { get; private set; }
 
-        public const int ResolutionWidth = 320;
-        public const int ResolutionHeight = 224;
-        public const float AspectRatio = ResolutionWidth / (float)ResolutionHeight;
-
         private readonly GraphicsDevice graphics;
         private readonly SpriteBatch batch;
         private readonly Texture2D texture;
 
         private Effect currentEffect;
-        private Matrix stateTransform;
+        private Matrix currentTransformation;
 
         internal Renderer(GraphicsDevice graphicsDevice)
         {
@@ -31,9 +27,10 @@ namespace Good.Core
         internal void BeginDraw(Matrix transform)
         {
             currentEffect = null;
-            stateTransform = transform;
+            currentTransformation = transform;
+
             batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
-                       RasterizerState.CullCounterClockwise, currentEffect, stateTransform);
+                       RasterizerState.CullCounterClockwise, currentEffect, currentTransformation);
         }
 
         internal void EndDraw()
@@ -67,13 +64,7 @@ namespace Good.Core
         public void DrawRectangle(int x, int y, int w, int h, Color color)
         {
             HandleEffectChange(null);
-            var rect = new Rectangle
-            {
-                X = x,
-                Y = y,
-                Width = w,
-                Height = h
-            };
+            var rect = new Rectangle { X = x, Y = y, Width = w, Height = h };
             batch.Draw(texture, rect, null, color);
         }
 
@@ -97,9 +88,10 @@ namespace Good.Core
             if (currentEffect != effect)
             {
                 currentEffect = effect;
+
                 batch.End();
                 batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
-                       RasterizerState.CullCounterClockwise, currentEffect, stateTransform);
+                       RasterizerState.CullCounterClockwise, currentEffect, currentTransformation);
             }
         }
     }

@@ -9,10 +9,10 @@ namespace Good.Core
         public const int ResolutionHeight = 224;
         public const float AspectRatio = ResolutionWidth / (float)ResolutionHeight;
 
-        public static Matrix ResolutionTransform { get; private set; }
-        public static Matrix CurrentTransform { get; private set; }
+        internal static Matrix ResolutionTransform { get; private set; }
+        internal static Matrix CurrentTransform { get; private set; }
 
-        public static void AdjustResolution() 
+        internal static void AdjustResolution() 
         {
             int screenWidth = MainGame.Instance.GraphicsDevice.PresentationParameters.BackBufferWidth;
             int screenHeight = MainGame.Instance.GraphicsDevice.PresentationParameters.BackBufferHeight;
@@ -56,12 +56,12 @@ namespace Good.Core
             });
         }
 
-        public static void UpdateTransformation(Matrix? matrix) 
+        internal static void UpdateTransformation(Matrix? matrix) 
         {
             CurrentTransform = matrix.HasValue ? matrix.Value * ResolutionTransform : ResolutionTransform;
         }
 
-        public static Vector2 TransformScreenCoords(Vector2 screenPosition)
+        internal static Vector2 TransformScreenCoords(Vector2 screenPosition)
         {
             screenPosition.X -= MainGame.Instance.GraphicsDevice.Viewport.X;
             screenPosition.Y -= MainGame.Instance.GraphicsDevice.Viewport.Y;

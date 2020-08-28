@@ -6,13 +6,18 @@ namespace Good.Core
 {
     public class Layout : MainGameState
     {
+        public static Layout Current => stack.Peek();
+
         private static readonly Dictionary<string, Func<Sprite>> factories = new Dictionary<string, Func<Sprite>>();
-        public static void Register(string name, Func<Sprite> factory) => factories.Add(name, factory);
-        public static Sprite Create(string name) => factories[name].Invoke();
+        private static readonly Stack<Layout> stack = new Stack<Layout>();
 
-        public static Layout Current { get; private set; }
+        public override Matrix? Transformation => GetTransformation();
 
-        public const int GridCellSize = 128;
+        public Vector2 Position { get; set; }
+        public float Zoom { get; set; } = 1f;
+
+        public LayoutMap Map { get; set; }
+        public LayoutGrid Grid { get; private set; }
 
         private readonly List<Sprite> sprites;
         private readonly Queue<Action> spriteOps;
@@ -29,30 +34,34 @@ namespace Good.Core
             });
         }
 
-        public override Matrix? Transformation => 
-            Matrix.CreateTranslation((int)Math.Floor(-Position.X), (int)Math.Floor(-Position.Y), 0f) 
-            * Matrix.CreateScale(Zoom, Zoom, 1f);
+        public static void Register(string name, Func<Sprite> factory) 
+        {
+            factories.Add(name, factory);
+        }
 
-        public Vector2 Position { get; set; }
-        public float Zoom { get; set; } = 1f;
-        public LayoutMap Map { get; set; }
-        public LayoutGrid Grid { get; private set; }
+        public static Sprite Create(string name) 
+        {
+            return factories[name].Invoke();
+        }
 
         public override void Enter()
         {
-            Current = this;
-            Grid = new LayoutGrid(Map.Data.GetLength(0), Map.Data.GetLength(1), GridCellSize);
+            stack.Push(this);
+
+            Grid = new LayoutGrid(Map.Data.GetLength(0), Map.Data.GetLength(1), 128);
+
             onSpriteAdded = sprite =>
             {
                 sprite.Load();
                 sprite.Created();
             };
+
             PumpSpriteOperations();
         }
 
         public override void Exit()
         {
-            Current = null;
+            stack.Pop();
         }
 
         public override void Update()
@@ -60,24 +69,26 @@ namespace Good.Core
             sprites.ForEach(sprite => sprite.Update());
             sprites.ForEach(sprite => sprite.Animate());
             sprites.ForEach(sprite => sprite.BodyInfo.PreviousPosition = sprite.BodyInfo.Position);
+
             PumpSpriteOperations();
         }
 
         public override void Draw()
         {
             Map.Draw();
+
             sprites.ForEach(sprite => sprite.Draw());
         }
 
         public void PumpSpriteOperations() 
         {
-            bool needSort = spriteOps.Count > 0;
+            if (spriteOps.Count > 0) 
+            {
+                while (spriteOps.Count > 0)
+                    spriteOps.Dequeue().Invoke();
 
-            while (spriteOps.Count > 0)
-                spriteOps.Dequeue().Invoke();
-
-            if (needSort)
                 sprites.Sort((x, y) => x.DrawInfo.Priority.CompareTo(y.DrawInfo.Priority));
+            }
         }
 
         public void Spawn(string name, int x, int y) 
@@ -90,6 +101,7 @@ namespace Good.Core
                 sprites.Add(sprite);
                 Grid.Add(sprite);
             });
+
             onSpriteAdded.Invoke(sprite);
         }
 
@@ -100,6 +112,7 @@ namespace Good.Core
                 sprites.Add(sprite);
                 Grid.Add(sprite);
             });
+
             onSpriteAdded.Invoke(sprite);
         }
 
@@ -115,7 +128,13 @@ namespace Good.Core
 
         public void MoveAndClamp(Vector2 position)
         {
-            Position = Vector2.Clamp(position, new Vector2(0, 0), new Vector2(Map.Width - Renderer.ResolutionWidth, Map.Height - Renderer.ResolutionHeight));
+            Position = Vector2.Clamp(position, new Vector2(0, 0), new Vector2(Map.Width - View.ResolutionWidth, Map.Height - View.ResolutionHeight));
+        }
+
+        public Matrix GetTransformation() 
+        {
+            return Matrix.CreateTranslation((int)Math.Floor(-Position.X), (int)Math.Floor(-Position.Y), 0f)
+                * Matrix.CreateScale(Zoom, Zoom, 1f);
         }
     }
 }

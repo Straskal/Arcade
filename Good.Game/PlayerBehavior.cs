@@ -57,7 +57,7 @@ namespace Good.Game
 
             }
 
-            Layout.Current.MoveAndClamp(sprite.BodyInfo.Position - new Vector2((Renderer.ResolutionWidth/2) - sprite.BodyInfo.Width /2, Renderer.ResolutionHeight/2 - sprite.BodyInfo.Height / 2));
+            Layout.Current.MoveAndClamp(sprite.BodyInfo.Position - new Vector2((View.ResolutionWidth/2) - sprite.BodyInfo.Width /2, View.ResolutionHeight/2 - sprite.BodyInfo.Height / 2));
         }
     }
 }
