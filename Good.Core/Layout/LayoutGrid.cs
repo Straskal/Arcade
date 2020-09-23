@@ -39,7 +39,7 @@ namespace Good.Core
 
         public void Update(Sprite sprite)
         {
-            if (sprite.Position != sprite.PreviousPosition)
+            if (sprite.BodyInfo.Position != sprite.BodyInfo.PreviousPosition)
             {
                 Remove(sprite);
                 Add(sprite);
@@ -48,23 +48,23 @@ namespace Good.Core
 
         internal void Add(Sprite sprite)
         {
-            foreach (var cellPos in GetOccupyingCells(sprite.Bounds))
-                cells[cellPos.X, cellPos.Y].Sprites.Add(sprite);
+            foreach (var cellPos in GetOccupyingCells(sprite.BodyInfo.Bounds))
+                cells[cellPos.Y, cellPos.X].Sprites.Add(sprite);
         }
 
         internal void Remove(Sprite sprite)
         {
-            foreach (var cellPos in GetOccupyingCells(sprite.PreviousBounds))
-                cells[cellPos.X, cellPos.Y].Sprites.Remove(sprite);
+            foreach (var cellPos in GetOccupyingCells(sprite.BodyInfo.PreviousBounds))
+                cells[cellPos.Y, cellPos.X].Sprites.Remove(sprite);
         }
 
         public bool IsOverlapping(Sprite sprite, out Overlap overlap)
         {
             overlap = new Overlap();
-            var overlappedObject = QueryBounds(sprite.Bounds).FirstOrDefault(other => other != sprite);
+            var overlappedObject = QueryBounds(sprite.BodyInfo.Bounds).FirstOrDefault(other => other != sprite);
             if (overlappedObject != null)
             {
-                overlap.Depth = GetIntersectionDepth(sprite.Bounds, overlappedObject.Bounds);
+                overlap.Depth = GetIntersectionDepth(sprite.BodyInfo.Bounds, overlappedObject.BodyInfo.Bounds);
                 overlap.Other = overlappedObject;
                 return true;
             }
@@ -74,16 +74,24 @@ namespace Good.Core
         public bool IsCollidingAtOffset(Sprite sprite, float xOffset, float yOffset, out Overlap overlap)
         {
             overlap = new Overlap();
-            var offsetBounds = sprite.Bounds;
+            var offsetBounds = sprite.BodyInfo.Bounds;
             offsetBounds.Offset(xOffset, yOffset);
-            var overlappedObject = QueryBounds(offsetBounds).FirstOrDefault(other => other != sprite && other.IsSolid);
+            var overlappedObject = QueryBounds(offsetBounds).FirstOrDefault(other => other != sprite && other.BodyInfo.IsSolid);
             if (overlappedObject != null)
             {
-                overlap.Depth = GetIntersectionDepth(offsetBounds, overlappedObject.Bounds);
+                overlap.Depth = GetIntersectionDepth(offsetBounds, overlappedObject.BodyInfo.Bounds);
                 overlap.Other = overlappedObject;
                 return true;
             }
             return false;
+        }
+
+        public IEnumerable<Sprite> QueryPoint(Point point) 
+        {
+            if (TryGetCellPosition(point.ToVector2(), out int col, out int row))
+                return cells[row, col].Sprites.Where(other => other.BodyInfo.Bounds.Contains(point));
+
+            return Enumerable.Empty<Sprite>();
         }
 
         public IEnumerable<Sprite> QueryBounds(Rectangle bounds)
@@ -91,7 +99,7 @@ namespace Good.Core
             return GetOccupyingCells(bounds)
                 .SelectMany(cell => cells[cell.Y, cell.X].Sprites)
                 .Distinct()
-                .Where(other => bounds.Intersects(other.Bounds));
+                .Where(other => bounds.Intersects(other.BodyInfo.Bounds));
         }
 
         private IEnumerable<Point> GetOccupyingCells(Rectangle bounds)
@@ -114,7 +122,7 @@ namespace Good.Core
                 yield return new Point(bottomRightCol, bottomRightRow);
         }
 
-        private bool TryGetCellPosition(Vector2 position, out int column, out int row)
+        public bool TryGetCellPosition(Vector2 position, out int column, out int row)
         {
             column = (int)(position.X / CellSize);
             row = (int)(position.Y / CellSize);

@@ -8,16 +8,12 @@ namespace Good.Core
     {
         public static Renderer Instance { get; private set; }
 
-        public const int ResolutionWidth = 320;
-        public const int ResolutionHeight = 224;
-        public const float AspectRatio = ResolutionWidth / (float)ResolutionHeight;
-
         private readonly GraphicsDevice graphics;
         private readonly SpriteBatch batch;
         private readonly Texture2D texture;
 
         private Effect currentEffect;
-        private Matrix resolutionTransform;
+        private Matrix currentTransformation;
 
         internal Renderer(GraphicsDevice graphicsDevice)
         {
@@ -28,56 +24,13 @@ namespace Good.Core
             texture.SetData(new[] { Color.White });
         }
 
-        internal void FrameStart() 
-        {
-            int screenWidth = graphics.PresentationParameters.BackBufferWidth;
-            int screenHeight = graphics.PresentationParameters.BackBufferHeight;
-
-            // Time to create those black aspect ratio bars.
-            // Set the view port to be as wide as the backbuffer and then clear the screen.
-            graphics.Viewport = new Viewport
-            {
-                X = 0,
-                Y = 0,
-                Width = screenWidth,
-                Height = screenHeight
-            };
-
-            graphics.Clear(Color.Black);
-
-            // Start off the process of assuming letter box is needed.
-            int targetWidth = screenWidth;
-            int targetHeight = (int)(screenWidth / AspectRatio + 0.5f);
-
-            // Adjust from letter box to pillar pox if need be.
-            if (targetHeight > screenHeight)
-            {
-                targetHeight = screenHeight;
-                targetWidth = (int)(targetHeight * AspectRatio + 0.5f);
-            }
-
-            graphics.Viewport = new Viewport
-            {
-                X = screenWidth / 2 - targetWidth / 2,
-                Y = screenHeight / 2 - targetHeight / 2,
-                Width = targetWidth,
-                Height = targetHeight
-            };
-
-            resolutionTransform = Matrix.CreateScale(new Vector3
-            {
-                X = (float)targetWidth / ResolutionWidth,
-                Y = (float)targetWidth / ResolutionWidth,
-                Z = 1f
-            });
-        }
-
-        internal void BeginDraw(Matrix? transform = null)
+        internal void BeginDraw(Matrix transform)
         {
             currentEffect = null;
-            var transformation = transform.HasValue ? transform.Value * resolutionTransform : resolutionTransform;
+            currentTransformation = transform;
+
             batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
-                       RasterizerState.CullCounterClockwise, currentEffect, transformation);
+                       RasterizerState.CullCounterClockwise, currentEffect, currentTransformation);
         }
 
         internal void EndDraw()
@@ -93,7 +46,7 @@ namespace Good.Core
         public void Print(SpriteFont font, Vector2 position, string text) 
         {
             HandleEffectChange(null);
-            batch.DrawString(font, text, position, Color.White);
+            batch.DrawString(font, text, position, Color.White, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
         }
 
         public void Draw(Texture2D texture, Vector2 position, Color color)
@@ -111,13 +64,7 @@ namespace Good.Core
         public void DrawRectangle(int x, int y, int w, int h, Color color)
         {
             HandleEffectChange(null);
-            var rect = new Rectangle
-            {
-                X = x,
-                Y = y,
-                Width = w,
-                Height = h
-            };
+            var rect = new Rectangle { X = x, Y = y, Width = w, Height = h };
             batch.Draw(texture, rect, null, color);
         }
 
@@ -136,21 +83,15 @@ namespace Good.Core
             DrawRectangle(rectangle.X + rectangle.Width - 1, rectangle.Y, 1, rectangle.Height, color);
         }
 
-        public Vector2 ScaleScreenCoordinates(Vector2 screenPosition)
-        {
-            screenPosition.X -= graphics.Viewport.X;
-            screenPosition.Y -= graphics.Viewport.Y;
-            return Vector2.Transform(screenPosition, Matrix.Invert(resolutionTransform));
-        }
-
         private void HandleEffectChange(Effect effect)
         {
             if (currentEffect != effect)
             {
                 currentEffect = effect;
+
                 batch.End();
                 batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default,
-                       RasterizerState.CullCounterClockwise, currentEffect, resolutionTransform);
+                       RasterizerState.CullCounterClockwise, currentEffect, currentTransformation);
             }
         }
     }

@@ -12,35 +12,35 @@ namespace Good.Game
             var keyboard = Keyboard.GetState();
 
             var direction = Vector2.Zero;
-            var anim = sprite.CurrentAnimation;
+            var anim = sprite.AnimationInfo.CurrentAnimationName;
             var speed = 0f;
 
             if (keyboard.IsKeyDown(Keys.D)) 
             {
                 direction.X = 1;
-                sprite.FlipFlags = SpriteEffects.None;
-                speed = 0.4f;
+                sprite.DrawInfo.FlipFlags = SpriteEffects.None;
+                speed = 3f;
             }
 
             if (keyboard.IsKeyDown(Keys.A))
             {
                 direction.X = -1;
-                sprite.FlipFlags = SpriteEffects.FlipHorizontally;
-                speed = 0.4f;
+                sprite.DrawInfo.FlipFlags = SpriteEffects.FlipHorizontally;
+                speed = 3f;
             }
 
             if (keyboard.IsKeyDown(Keys.W))
             {
                 anim = "walk_up";
                 direction.Y = -1;
-                speed = 0.4f;
+                speed = 3f;
             }
 
             if (keyboard.IsKeyDown(Keys.S))
             {
                 anim = "walk_down";
                 direction.Y = 1;
-                speed = 0.4f;
+                speed = 3f;
             }
 
             if (direction.X != 0f)
@@ -50,12 +50,14 @@ namespace Good.Game
                 direction.Normalize();
 
             sprite.SetAnimation(anim);
-            sprite.Animations[sprite.CurrentAnimation].Speed = speed;
+            sprite.AnimationInfo.Animations[sprite.AnimationInfo.CurrentAnimationName].Speed = speed;
 
             if (sprite.MoveAndCollide(direction, out var overlap))
             {
 
             }
+
+            Layout.Current.MoveAndClamp(sprite.BodyInfo.Position - new Vector2((View.ResolutionWidth/2) - sprite.BodyInfo.Width /2, View.ResolutionHeight/2 - sprite.BodyInfo.Height / 2));
         }
     }
 }
